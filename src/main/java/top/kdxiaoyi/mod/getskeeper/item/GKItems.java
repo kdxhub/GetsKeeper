@@ -1,5 +1,7 @@
 package top.kdxiaoyi.mod.getskeeper.item;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -16,10 +18,16 @@ public final class GKItems {
      *
      * <p>Unstackable by design: one image vouches for one batch of picked up items, so there is
      * never a reason for two of them to share a slot.
+     *
+     * <p>The factory takes the registry key rather than nothing, because {@link Item.Properties}
+     * carries the item's own id and constructing it without one fails at registration time with
+     * "Item id not set". Only the key-aware overload sets it.
      */
     public static final DeferredItem<MountedContainerImageItem> MOUNTED_CONTAINER_IMAGE = ITEMS.register(
             "mounted_container_image",
-            () -> new MountedContainerImageItem(new Item.Properties().stacksTo(1)));
+            key -> new MountedContainerImageItem(new Item.Properties()
+                    .stacksTo(1)
+                    .setId(ResourceKey.create(Registries.ITEM, key))));
 
     private GKItems() {}
 

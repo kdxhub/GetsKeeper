@@ -1,0 +1,93 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Client",
+      "presentation": {
+        "group": "Mod Development - GetsKeeper",
+        "order": 0
+      },
+      "projectName": "GetsKeeper",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/clientRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003dgetskeeper%%/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/bin/main"
+      ],
+      "cwd": "${workspaceFolder}/run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "ClientData",
+      "presentation": {
+        "group": "Mod Development - GetsKeeper",
+        "order": 1
+      },
+      "projectName": "GetsKeeper",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/clientDataRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/clientDataRunVmArgs.txt",
+        "-Dfml.modFolders\u003dgetskeeper%%/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/bin/main"
+      ],
+      "cwd": "${workspaceFolder}/run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "GameTestServer",
+      "presentation": {
+        "group": "Mod Development - GetsKeeper",
+        "order": 2
+      },
+      "projectName": "GetsKeeper",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/gameTestServerRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/gameTestServerRunVmArgs.txt",
+        "-Dfml.modFolders\u003dgetskeeper%%/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/bin/main"
+      ],
+      "cwd": "${workspaceFolder}/run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "Server",
+      "presentation": {
+        "group": "Mod Development - GetsKeeper",
+        "order": 3
+      },
+      "projectName": "GetsKeeper",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/serverRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/build/moddev/serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003dgetskeeper%%/Users/kdxiaoyi/Workspace/Repos/GetsKeeper/bin/main"
+      ],
+      "cwd": "${workspaceFolder}/run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    }
+  ]
+}

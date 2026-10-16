@@ -12,7 +12,7 @@
   // Gradle to compute the classpath, so every net.* / com.mojang.* import stays
   // unresolved. Pin a JDK that Gradle 9.2.1 supports (JDK 25 is what the build
   // toolchain uses; foojay already downloaded it).
-  "java.import.gradle.java.home": "/Users/kdxiaoyi/.gradle/jdks/eclipse_adoptium-25-aarch64-os_x.2/jdk-25.0.4+7/Contents/Home",
+  "java.import.gradle.java.home": "/Library/Java/JavaVirtualMachines/jdk-24.jdk/Contents/Home",
 
   // Make the editor (JDT LS) use a real JDK so it can resolve the Java 25 APIs
   // that NeoForge 26.2 targets. JavaSE-26 is the user's preferred editing JDK.
@@ -21,10 +21,6 @@
       "name": "JavaSE-26",
       "path": "/opt/homebrew/opt/openjdk@26",
       "default": true
-    },
-    {
-      "name": "JavaSE-25",
-      "path": "/Users/kdxiaoyi/.gradle/jdks/eclipse_adoptium-25-aarch64-os_x.2/jdk-25.0.4+7/Contents/Home"
     },
     {
       "name": "JavaSE-24",
@@ -36,5 +32,6 @@
   "java.project.sourcePaths": [
     "src/main/java",
     "src/generated/resources"
-  ]
+  ],
+  "java.compile.nullAnalysis.mode": "automatic"
 }
