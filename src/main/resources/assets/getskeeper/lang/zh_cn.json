@@ -1,0 +1,77 @@
+{
+  "item.getskeeper.mounted_container_image": "挂载的容器映像",
+
+  "getskeeper.pickup.title": "拾取",
+  "getskeeper.pickup.hint": "把物品拖到容器映像上",
+  "getskeeper.pickup.many": "%1$s\u2026等%2$s样物品",
+  "getskeeper.pickup.tooltip_header": "即将拾取：",
+  "getskeeper.pickup.tooltip_line": "%1$s x%2$s",
+
+  "getskeeper.verify.in_progress": "正在验证\u201c%1$s\u201d\u2026\u2026",
+
+  "getskeeper.dialog.ok": "好",
+  "getskeeper.dialog.cancel": "取消",
+  "getskeeper.dialog.continue": "继续",
+  "getskeeper.dialog.done": "完成",
+  "getskeeper.dialog.void": "移到虚空",
+  "getskeeper.dialog.reuse": "重新使用",
+
+  "getskeeper.dialog.inventory_full.title": "背包已满",
+  "getskeeper.dialog.inventory_full.body": "\u201c%1$s\u201d无法打开此容器映像，因为背包已满。",
+
+  "getskeeper.dialog.use.title": "要使用\u201c%1$s\u201d吗？",
+  "getskeeper.dialog.use.trusted_note": "Ojang 未发现此文件包含恶意软件。",
+  "getskeeper.dialog.use.attribution": "\u201c%1$s\u201d于 %2$s 从\u201c%3$s\u201d获取了此物品",
+
+  "getskeeper.dialog.untrusted.title": "未使用\u201c%1$s\u201d",
+  "getskeeper.dialog.untrusted.body": "Ojang 无法验证\u201c%1$s\u201d是否包含可能危害世界安全或泄漏隐私的恶意功能。",
+
+  "getskeeper.dialog.blocked.title": "\u201c%1$s\u201d已损坏，你应该将其移到虚空。",
+  "getskeeper.dialog.blocked.body": "此物品的命名空间在拉黑名单中。",
+
+  "getskeeper.dialog.restricted.title": "未使用\u201c%1$s\u201d",
+  "getskeeper.dialog.restricted.body": "已限制使用\u201c%1$s\u201d，在重新授权之前无法使用此物品。",
+  "getskeeper.dialog.reauthorized.body": "在重新使用\u201c%1$s\u201d前，\u201c%2$s\u201d无法使用。",
+
+  "getskeeper.privacy.button": "隐私与安全性",
+  "getskeeper.privacy.title": "隐私与安全性",
+  "getskeeper.privacy.subtitle": "你在本存档中已授权的物品",
+  "getskeeper.privacy.authorized_header": "已授权物品",
+  "getskeeper.privacy.empty": "还没有已授权的物品",
+  "getskeeper.privacy.blocked_header": "本次游玩已被阻止",
+  "getskeeper.privacy.blocked_empty": "还没有被阻止的物品",
+  "getskeeper.privacy.blocked_line": "已阻止\u201c%1$s\u201d以保护世界",
+  "getskeeper.privacy.use_anyway": "仍要使用",
+  "getskeeper.privacy.close": "完成",
+
+  "getskeeper.password.title": "密码",
+  "getskeeper.password.username": "用户名",
+  "getskeeper.password.username_label": "用户名",
+  "getskeeper.password.password_label": "密码",
+  "getskeeper.password.submit": "确定",
+  "getskeeper.password.cancel": "取消",
+  "getskeeper.password.empty": "请先输入密码",
+  "getskeeper.password.rejected": "密码验证未通过",
+  "getskeeper.password.setup": "设置密码",
+  "getskeeper.password.setup_required": "管理员必须先设置密码才能游玩",
+  "getskeeper.password.authorize": "输入密码以授权\u201c%1$s\u201d",
+  "getskeeper.password.use_anyway": "输入密码以继续使用\u201c%1$s\u201d",
+  "getskeeper.password.toggle": "输入密码以更改\u201c%1$s\u201d的开关",
+
+  "getskeeper.toggle.on": "开",
+  "getskeeper.toggle.off": "关",
+
+  "getskeeper.command.mattr.usage": "用法：/mattr -r -d com.ojang.quarantine <物品>",
+  "getskeeper.command.mattr.authorized": "已授权 %1$s",
+  "getskeeper.disconnect.no_password": "GetsKeeper：管理员必须先设置密码才能游玩。",
+
+  "getskeeper.source.container": "%1$s（%2$s）",
+  "getskeeper.source.command": "命令 %1$s",
+  "getskeeper.source.crafting": "合成格",
+  "getskeeper.source.furnace": "熔炉",
+  "getskeeper.source.trade": "与 %1$s 的交易",
+  "getskeeper.source.fishing": "钓鱼（%2$s）",
+  "getskeeper.source.creative": "创造模式物品栏",
+  "getskeeper.source.pickup": "地面（%2$s）",
+  "getskeeper.source.unknown": "未知来源"
+}

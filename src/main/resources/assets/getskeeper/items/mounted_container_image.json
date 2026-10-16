@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "getskeeper:item/mounted_container_image"
+  }
+}

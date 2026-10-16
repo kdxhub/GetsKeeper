@@ -1,0 +1,77 @@
+{
+  "item.getskeeper.mounted_container_image": "Mounted Container Image",
+
+  "getskeeper.pickup.title": "Pickup",
+  "getskeeper.pickup.hint": "Drag the item onto the container image",
+  "getskeeper.pickup.many": "%1$s\u2026 and %2$s other kinds of items",
+  "getskeeper.pickup.tooltip_header": "About to be picked up:",
+  "getskeeper.pickup.tooltip_line": "%1$s x%2$s",
+
+  "getskeeper.verify.in_progress": "Verifying \"%1$s\"\u2026",
+
+  "getskeeper.dialog.ok": "OK",
+  "getskeeper.dialog.cancel": "Cancel",
+  "getskeeper.dialog.continue": "Continue",
+  "getskeeper.dialog.done": "Done",
+  "getskeeper.dialog.void": "Move to the void",
+  "getskeeper.dialog.reuse": "Use it again",
+
+  "getskeeper.dialog.inventory_full.title": "Inventory full",
+  "getskeeper.dialog.inventory_full.body": "\"%1$s\" cannot open this container image because the inventory is full.",
+
+  "getskeeper.dialog.use.title": "Use \"%1$s\"?",
+  "getskeeper.dialog.use.trusted_note": "Ojang did not find malicious software in this file.",
+  "getskeeper.dialog.use.attribution": "\"%1$s\" obtained this item from \"%3$s\" at %2$s",
+
+  "getskeeper.dialog.untrusted.title": "Did not use \"%1$s\"",
+  "getskeeper.dialog.untrusted.body": "Ojang cannot verify whether \"%1$s\" contains malicious functionality that could harm the safety of the world or leak privacy.",
+
+  "getskeeper.dialog.blocked.title": "\"%1$s\" is broken, you should move it to the void.",
+  "getskeeper.dialog.blocked.body": "This item's namespace is on the blocked list.",
+
+  "getskeeper.dialog.restricted.title": "Did not use \"%1$s\"",
+  "getskeeper.dialog.restricted.body": "The use of \"%1$s\" is restricted and cannot be used before it is authorized again.",
+  "getskeeper.dialog.reauthorized.body": "Before \"%1$s\" is used again, \"%2$s\" cannot be used.",
+
+  "getskeeper.privacy.button": "Privacy & Security",
+  "getskeeper.privacy.title": "Privacy & Security",
+  "getskeeper.privacy.subtitle": "Items you have authorized in this world",
+  "getskeeper.privacy.authorized_header": "Authorized items",
+  "getskeeper.privacy.empty": "Nothing authorized yet",
+  "getskeeper.privacy.blocked_header": "Blocked this session",
+  "getskeeper.privacy.blocked_empty": "Nothing has been blocked",
+  "getskeeper.privacy.blocked_line": "Blocked \"%1$s\" to protect the world",
+  "getskeeper.privacy.use_anyway": "Use anyway",
+  "getskeeper.privacy.close": "Done",
+
+  "getskeeper.password.title": "Password",
+  "getskeeper.password.username": "User name",
+  "getskeeper.password.username_label": "User name",
+  "getskeeper.password.password_label": "Password",
+  "getskeeper.password.submit": "Confirm",
+  "getskeeper.password.cancel": "Cancel",
+  "getskeeper.password.empty": "Enter a password first",
+  "getskeeper.password.rejected": "The password was not accepted",
+  "getskeeper.password.setup": "Set a password",
+  "getskeeper.password.setup_required": "An operator must set a password before playing",
+  "getskeeper.password.authorize": "Enter the password to authorize \"%1$s\"",
+  "getskeeper.password.use_anyway": "Enter the password to keep using \"%1$s\"",
+  "getskeeper.password.toggle": "Enter the password to change the switch for \"%1$s\"",
+
+  "getskeeper.toggle.on": "On",
+  "getskeeper.toggle.off": "Off",
+
+  "getskeeper.command.mattr.usage": "Usage: /mattr -r -d com.ojang.quarantine <item>",
+  "getskeeper.command.mattr.authorized": "Authorized %1$s",
+  "getskeeper.disconnect.no_password": "GetsKeeper: an operator must set a password before playing.",
+
+  "getskeeper.source.container": "%1$s at %2$s",
+  "getskeeper.source.command": "the command %1$s",
+  "getskeeper.source.crafting": "a crafting grid",
+  "getskeeper.source.furnace": "a furnace",
+  "getskeeper.source.trade": "a trade with %1$s",
+  "getskeeper.source.fishing": "fishing at %2$s",
+  "getskeeper.source.creative": "the creative inventory",
+  "getskeeper.source.pickup": "the ground at %2$s",
+  "getskeeper.source.unknown": "an unknown source"
+}
