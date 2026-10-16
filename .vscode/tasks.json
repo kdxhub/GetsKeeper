@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "NeoForge: Build Mod",
+      "type": "shell",
+      "command": "./gradlew build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gradle"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "detail": "Builds the mod jar into build/libs/ (e.g. notenoughblocks-1.0.0.jar). On the first run it downloads NeoForge and generates the mapped Minecraft jars, which is what lets VSCode resolve the API."
+    },
+    {
+      "label": "NeoForge: Generate Sources",
+      "type": "shell",
+      "command": "./gradlew genSources",
+      "group": "build",
+      "problemMatcher": ["$gradle"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "detail": "Decompiles and attaches Minecraft + NeoForge sources so VSCode can show API source/docs when you navigate into net.minecraft / net.neoforged classes."
+    },
+    {
+      "label": "NeoForge: Grant Execution Permission (POSIX)",
+      "type": "shell",
+      "command": "sudo chmod +x ./gradlew",
+      "group": "test",
+      "problemMatcher": ["$gradle"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "detail": "Grant execution permission for building script on POSIX-like os. Sudo Password is required while running."
+    }
+  ]
+}
