@@ -41,8 +41,6 @@
   "getskeeper.pickup.tooltip_header": "About to be picked up:",
   "getskeeper.pickup.tooltip_line": "%1$s x%2$s",
   "getskeeper.privacy.authorized_header": "Authorized items",
-  "getskeeper.privacy.blocked_empty": "Nothing has been blocked",
-  "getskeeper.privacy.blocked_header": "Blocked this session",
   "getskeeper.privacy.blocked_line": "Blocked \"%1$s\" to protect the world",
   "getskeeper.privacy.button": "Privacy & Security",
   "getskeeper.privacy.close": "Done",

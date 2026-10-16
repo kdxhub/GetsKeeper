@@ -41,8 +41,6 @@
   "getskeeper.pickup.tooltip_header": "即将拾取：",
   "getskeeper.pickup.tooltip_line": "%1$s x%2$s",
   "getskeeper.privacy.authorized_header": "已授权物品",
-  "getskeeper.privacy.blocked_empty": "还没有被阻止的物品",
-  "getskeeper.privacy.blocked_header": "本次游玩已被阻止",
   "getskeeper.privacy.blocked_line": "已阻止“%1$s”以保护世界",
   "getskeeper.privacy.button": "隐私与安全性",
   "getskeeper.privacy.close": "完成",

@@ -58,8 +58,9 @@ public final class PickupInterceptor {
         if (!GKConfig.pickupEnabled() || !(event.getPlayer() instanceof ServerPlayer player)) {
             return;
         }
-        ItemStack stack = event.getItemEntity().getItem();
-        if (stack.isEmpty()) {
+        ItemEntity entity = event.getItemEntity();
+        ItemStack stack = entity.getItem();
+        if (stack.isEmpty() || !isOfferable(entity, stack)) {
             return;
         }
         String itemId = SourceRecorder.itemId(stack);
@@ -68,8 +69,11 @@ public final class PickupInterceptor {
             return;
         }
 
-        event.setCanPickup(TriState.FALSE);
-        offer(player, List.of(), event.getItemEntity().getUUID());
+        // The pickup is only taken away once the screen is really going up. Cancelling first and then
+        // finding nothing to offer would strand the item on the ground, where nobody could take it.
+        if (offer(player, List.of(), entity.getUUID())) {
+            event.setCanPickup(TriState.FALSE);
+        }
     }
 
     /**
@@ -277,6 +281,9 @@ public final class PickupInterceptor {
             if (stack.isEmpty() || !entity.isAlive()) {
                 continue;
             }
+            if (!isOfferable(entity, stack)) {
+                continue;
+            }
             if (PickupSession.isCoolingDown(playerId, entity.getUUID(), now)) {
                 continue;
             }
@@ -325,6 +332,23 @@ public final class PickupInterceptor {
     }
 
     // --- helpers -----------------------------------------------------------------------------
+
+    /**
+     * {@return whether this ground stack is something the screen may be opened for}
+     *
+     * <p>Two kinds of stack are quietly skipped:
+     *
+     * <ul>
+     *   <li>the mod's own image, which is never handled by any part of the mod, and</li>
+     *   <li>anything still inside its pickup delay. Vanilla gives a stack that was just thrown or
+     *       dropped a short grace period before anyone may take it, and that is exactly the moment a
+     *       player is most likely to be standing on top of it - so without this check, throwing an
+     *       item away immediately offered it back as a pickup.</li>
+     * </ul>
+     */
+    private static boolean isOfferable(ItemEntity entity, ItemStack stack) {
+        return !MountedContainerImageItem.isImage(stack) && !entity.hasPickUpDelay();
+    }
 
     private static boolean holdsImage(ServerPlayer player) {
         var inventory = player.getInventory();

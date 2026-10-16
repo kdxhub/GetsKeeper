@@ -163,6 +163,21 @@ and whether arrows are intercepted. All of them are documented inline in the fil
 checks that the item exists only after the password has been accepted — reporting a name that does
 not resolve the way vanilla does.
 
+## Behaviour worth knowing
+
+* **The container image cannot be dropped.** Pressing the drop key destroys it rather than creating an
+  item on the ground, so it can never be handed to anyone else or picked up a second time. It also
+  survives your death: it is not part of the death drop, and it is handed back to you on respawn.
+* **The image is never verified, offered as a pickup, or listed as an item source.** It is the tool the
+  mod runs on, so the mod stays out of its way.
+* **Dialogs are answered, not dismissed.** Every button closes the dialog it is on, and Escape does the
+  same as the safe button ("Cancel", "Done", "OK"). Cancelling a verification hands the item back to
+  your inventory - it never costs you the stack.
+* **Throwing an item away does not offer it back.** A stack still inside vanilla's own pickup delay -
+  the moment right after you throw it - is skipped by the pickup scan.
+* **The "refused this session" list at the bottom of the privacy page has no heading** and is not drawn
+  at all until something has actually been refused.
+
 ## Documentation
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the module map, the data flow, the persistence rules, the

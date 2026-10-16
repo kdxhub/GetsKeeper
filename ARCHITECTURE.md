@@ -88,16 +88,18 @@ player walks over an ItemEntity
         │
         ▼
 ItemEntityPickupEvent.Pre  (server)
-        │  item id already in the session cache?
-        ├── yes ─► let vanilla pick it up
-        └── no  ─► setCanPickup(FALSE)
+        │  the mod's own image, or a stack still inside its pickup delay
+        │  (it was thrown a moment ago)?  ──────────────► let vanilla pick it up
+        │  item id already in the session cache?  ───────► let vanilla pick it up
+        └── otherwise ─► offer first, and only veto the pickup
+                         if the screen really opens
                     │
                     ▼
               PickupInterceptor.offer()
                  ├── skip if a batch is already open for this player
                  ├── skip if the source is on cooldown for this player
                  ├── scan a sphere of radius pickup.scan_radius for ItemEntities
-                 │     (drop anything already cached or on cooldown)
+                 │     (drop anything already cached, cooling down, or still in its delay)
                  ├── InventoryProbe.probe(): simulate inserting the batch
                  └── if it fits and the player holds no image yet, add a sealed image
                     │
@@ -117,6 +119,15 @@ ItemEntityPickupEvent.Pre  (server)
  discard the source      cache nothing
 ```
 
+The pickup is vetoed only after the offer has produced a batch. Refusing first and then finding nothing
+to offer would take the pickup away and give nothing back, stranding the stack on the ground where
+nobody could take it.
+
+Two kinds of stack are skipped rather than offered. The mod's own image is never handled by any part of
+the mod. And a stack that was just thrown or dropped is still inside vanilla's own pickup delay - the
+grace period that stops an item being grabbed back the instant you throw it - so offering it would mean
+the mod asking whether you want to pick up the thing you deliberately just threw away.
+
 Arrows take a different route because vanilla adds them to the inventory from inside entity
 collision code, which no event can veto. The tick scanner finds a stuck, pickable arrow, sets
 `AbstractArrow.pickup` (a public field) to `DISALLOWED`, and offers it. Declining puts the field back,
@@ -132,7 +143,7 @@ pile of drops).
 an unauthorized stack appears in a guarded slot
         │
         ▼
-UseGuard: put the previous contents back
+UseGuard: put the whole inventory back, and hold the stack aside
         │
         ▼
 roll a duration between verification.min_ticks and verification.max_ticks
@@ -149,12 +160,16 @@ resolve the trust level and the recorded source
                                     │
                     ┌───────────────┼───────────────┐
                     ▼               ▼               ▼
-                 CANCEL         CONTINUE          VOID
+                 CONTINUE         CANCEL          VOID
                     │               │               │
-              drop the state   re-apply the    clear the stack
-                               intercepted     from the inventory
-                               operation
+              record the       put the stack    clear the stack
+              authorization    back in the      from the inventory
+              and re-apply     inventory
 ```
+
+Every answer also drops the snapshot baseline, so the next tick compares against the world as it is
+now rather than against the state from before the interception. Without that, a stack that was just
+put back reads as a brand new change and the item is verified again for ever.
 
 The four interception points are:
 
@@ -166,8 +181,9 @@ The four interception points are:
 | `LivingEntityUseItemEvent.Start` | using one at all: eating, drawing a bow, and so on |
 
 "Guarded slots" are the selected hotbar slot, the offhand, and every slot in
-`Inventory.EQUIPMENT_SLOT_MAPPING`. The rest of the backpack is deliberately not guarded: moving an
-item around inside the backpack is not using it.
+`Inventory.EQUIPMENT_SLOT_MAPPING`. The rest of the backpack is deliberately not watched: moving an
+item around inside the backpack is not using it. The whole inventory is snapshotted all the same,
+because undoing an intercepted move has to restore both of its ends.
 
 ### 2.3 Authorization and the privacy page
 
@@ -292,9 +308,10 @@ The mod uses **no mixins and no access transformers**: everything goes through t
 
 ---
 
-## 7. Known deviations and limits
+## 7. Deliberate choices and limits
 
-These are deliberate, and each one is a place where the original design could not be followed exactly.
+These are intentional. Some are places where the original design could not be followed exactly; others
+are the rules the design implies but never spells out.
 
 1. **Chest artwork.** 1.21.11's GUI atlas has no chest-front sprite (`container/*` holds crafting,
    furnace, beacon and similar icons only), so the pickup screen renders vanilla's chest **item**
@@ -323,10 +340,30 @@ These are deliberate, and each one is a place where the original design could no
 6. **Operators in single-player.** "Single-player counts as administrator" is implemented as
    "permission level 3". The host of a single-player world already holds that level, so the behaviour
    is identical to a dedicated server without a special case that a LAN guest could trip over.
-7. **Re-apply after "Continue".** The intercepted operation is retried by putting the stack back into
-   the slot it came from. Uses that are not slot moves (right clicking a block, starting to eat)
-   cannot be retried for the player; the action simply has to be repeated. Failures are swallowed and
+7. **What happens to an intercepted stack.** Interception takes a stack out of the inventory, so all
+   three answers have to put it somewhere. "Continue" writes it back into the watched slot and records
+   the authorization; "Move to the void" clears it; "Cancel" hands it back to the inventory, dropping
+   it only when there is no room left. A cancelled verification must never cost the player an item.
+   Undoing an interception restores the **whole** inventory rather than just the watched slot, because
+   a move has two ends - restoring one end of a swap leaves the other end behind, which both loses one
+   stack and duplicates the other.
+   Uses that are not slot moves (right clicking a block, starting to eat) have nothing to put back:
+   they were vetoed, not undone, so the player simply repeats the action. Failures are swallowed and
    logged at debug level, as specified.
+8. **A prompt is answered, never just dismissed.** Every button closes its dialog once it has acted,
+   and Escape takes the same action as the safe button - the non-destructive one, "Cancel" or "Done"
+   or "OK". Escape is therefore not a way to close a dialog without answering it, which would leave
+   the server waiting for a decision and the intercepted item in limbo. Dialogs marked not closable
+   ignore Escape entirely. The full-inventory warning is an ordinary screen rather than a GUI layer
+   stacked over the pickup screen, so one acknowledgement closes the whole thing - the pickup screen's
+   removal is what tells the server to leave the items where they are.
+9. **The container image never touches the world.** Dropping it destroys it: the join of the would-be
+   `ItemEntity` is refused, which is the moment the stack has already left the inventory, so refusing
+   the entity *is* the destruction. (Cancelling the drop instead - the obvious reading - leaves the
+   item sitting in the inventory, which is what the mod used to do.) On death it is neither dropped nor
+   lost: it is filtered out of the death drops and copied to the respawned player. It is also exempt
+   from every gate in the mod - not verified, not intercepted on pickup, not written into the source
+   records - because verifying the image would mean verifying the tool that does the verifying.
 
 ---
 

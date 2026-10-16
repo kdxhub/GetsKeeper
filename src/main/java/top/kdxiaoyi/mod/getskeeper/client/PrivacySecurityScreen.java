@@ -150,14 +150,10 @@ public final class PrivacySecurityScreen extends Screen {
             drawScrollHint(graphics, authorized, authorizedScroll, authorizedTop);
         }
 
-        MacTheme.text(graphics, font, Component.translatable("getskeeper.privacy.blocked_header"), panelX + PADDING,
-                blockedTop - 12, MacTheme.TEXT_PRIMARY);
-
+        // The session list has no heading and no empty state: it is a footnote to the page, so when
+        // nothing was refused this session there is simply nothing to draw.
         List<String> blocked = ClientGuardState.sessionBlocked();
-        if (blocked.isEmpty()) {
-            MacTheme.text(graphics, font, Component.translatable("getskeeper.privacy.blocked_empty"), panelX + PADDING,
-                    blockedTop + 4, MacTheme.TEXT_SECONDARY);
-        } else {
+        if (!blocked.isEmpty()) {
             graphics.enableScissor(panelX + PADDING, blockedTop, panelX + PANEL_WIDTH - PADDING,
                     blockedTop + LIST_HEIGHT);
             for (int row = 0; row < visibleRows(); row++) {

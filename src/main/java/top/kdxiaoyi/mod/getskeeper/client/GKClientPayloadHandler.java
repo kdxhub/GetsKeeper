@@ -22,12 +22,13 @@ public final class GKClientPayloadHandler {
                     payload.ownerName());
 
             Minecraft minecraft = Minecraft.getInstance();
-            minecraft.setScreen(new PickupScreen(payload.stacks(), payload.itemIds()));
-
             if (payload.inventoryFull()) {
-                // The warning goes on top of the pickup screen. Acknowledging it closes both, which is
-                // why it replaces the whole layer stack instead of popping one layer at a time.
-                minecraft.pushGuiLayer(GKDialog.inventoryFull(payload.ownerName(), () -> minecraft.setScreen(null)));
+                // A full inventory means no image was handed over, so the warning is the only thing to
+                // show. Setting it as the screen replaces the pickup screen, whose removal already
+                // tells the server to leave everything alone - one acknowledgement closes it all.
+                minecraft.setScreen(GKDialog.inventoryFull(payload.ownerName()));
+            } else {
+                minecraft.setScreen(new PickupScreen(payload.stacks(), payload.itemIds()));
             }
         });
     }

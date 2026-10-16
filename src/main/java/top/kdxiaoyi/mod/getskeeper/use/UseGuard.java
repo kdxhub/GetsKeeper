@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -25,6 +24,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import top.kdxiaoyi.mod.getskeeper.GetsKeeper;
 import top.kdxiaoyi.mod.getskeeper.config.GKConfig;
+import top.kdxiaoyi.mod.getskeeper.item.MountedContainerImageItem;
 import top.kdxiaoyi.mod.getskeeper.data.GKAttachments;
 import top.kdxiaoyi.mod.getskeeper.net.GKNetwork;
 import top.kdxiaoyi.mod.getskeeper.net.VerificationDecision;
@@ -54,8 +54,13 @@ import top.kdxiaoyi.mod.getskeeper.trust.TrustService;
  * unless the item is fully trusted or already authorized. Authorized items never reach any of this.
  */
 public final class UseGuard {
-    /** Which slot an intercepted operation was aiming for. */
-    private record GuardedSlot(String kind, int index) {}
+    /**
+     * Which slot an intercepted operation was aiming for.
+     *
+     * <p>A negative index means the operation was not a slot move - a use of some kind - and there is
+     * therefore nothing to put back.
+     */
+    private record GuardedSlot(int index) {}
 
     /** A verification that is in flight. */
     private record Pending(ItemStack stack, GuardedSlot slot, long resolveAt) {}
@@ -75,7 +80,9 @@ public final class UseGuard {
 
     /** {@return {@code true} when the stack may be used without any verification} */
     public static boolean isTrusted(Player player, ItemStack stack) {
-        return AuthorizationService.isUsable(player, stack);
+        // The mod's own items are never verified: they are the tool this whole system runs on, and
+        // verifying the image would make mounting a batch verify the thing that vouches for it.
+        return MountedContainerImageItem.isImage(stack) || AuthorizationService.isUsable(player, stack);
     }
 
     // --- interception ------------------------------------------------------------------------
@@ -92,7 +99,7 @@ public final class UseGuard {
             return;
         }
         event.setCanceled(true);
-        begin(player, moving, new GuardedSlot("work", -1));
+        begin(player, moving, new GuardedSlot(-1));
     }
 
     private static void onUseItemOnBlock(UseItemOnBlockEvent event) {
@@ -104,7 +111,7 @@ public final class UseGuard {
             return;
         }
         event.cancelWithResult(InteractionResult.FAIL);
-        begin(player, stack, new GuardedSlot("use", -1));
+        begin(player, stack, new GuardedSlot(-1));
     }
 
     private static void onUseItemStart(LivingEntityUseItemEvent.Start event) {
@@ -116,7 +123,7 @@ public final class UseGuard {
             return;
         }
         event.setCanceled(true);
-        begin(player, stack, new GuardedSlot("use", -1));
+        begin(player, stack, new GuardedSlot(-1));
     }
 
     private static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
@@ -149,24 +156,25 @@ public final class UseGuard {
             return;
         }
 
-        List<GuardedSlot> slots = guardedSlots(player);
-        List<ItemStack> current = snapshot(player, slots);
+        List<ItemStack> current = snapshot(player);
         List<ItemStack> previous = SNAPSHOTS.put(id, current);
         if (previous == null || previous.size() != current.size()) {
             return;
         }
 
-        for (int i = 0; i < slots.size(); i++) {
-            ItemStack before = previous.get(i);
-            ItemStack after = current.get(i);
+        for (int index : guardedIndices(player)) {
+            ItemStack before = previous.get(index);
+            ItemStack after = current.get(index);
             if (after.isEmpty() || sameStack(before, after) || isTrusted(player, after)) {
                 continue;
             }
 
-            GuardedSlot slot = slots.get(i);
-            // Step one of the design: undo the operation before asking anything.
-            player.getInventory().setItem(slot.index(), before.copy());
-            SNAPSHOTS.put(id, snapshot(player, slots));
+            GuardedSlot slot = new GuardedSlot(index);
+            // Step one of the design: undo the operation before asking anything. The whole inventory
+            // is put back rather than just this slot, because a move has two ends - restoring one end
+            // of a swap leaves the other end behind, which both loses and duplicates stacks.
+            revert(player, previous);
+            SNAPSHOTS.put(id, snapshot(player));
             begin(player, after.copy(), slot);
             return;
         }
@@ -175,32 +183,35 @@ public final class UseGuard {
     /**
      * The slots whose contents are verified.
      *
-     * <p>The player's own inventory is deliberately not on this list: moving an item around inside
-     * the backpack is not using it. Hands and equipment are.
+     * <p>The rest of the player's own inventory is deliberately not watched: moving an item around
+     * inside the backpack is not using it. Hands and equipment are. The whole inventory is still
+     * snapshotted, because undoing an intercepted move has to restore both ends of it.
      */
-    private static List<GuardedSlot> guardedSlots(ServerPlayer player) {
+    private static Set<Integer> guardedIndices(ServerPlayer player) {
         Inventory inventory = player.getInventory();
         Set<Integer> indices = new LinkedHashSet<>();
         indices.add(inventory.getSelectedSlot());
         indices.add(Inventory.SLOT_OFFHAND);
-        for (int index : Inventory.EQUIPMENT_SLOT_MAPPING.keySet()) {
-            indices.add(index);
-        }
-
-        List<GuardedSlot> slots = new ArrayList<>(indices.size());
-        for (int index : indices) {
-            EquipmentSlot equipment = Inventory.EQUIPMENT_SLOT_MAPPING.get(index);
-            slots.add(new GuardedSlot(equipment == null ? "inventory" : equipment.name().toLowerCase(java.util.Locale.ROOT), index));
-        }
-        return slots;
+        indices.addAll(Inventory.EQUIPMENT_SLOT_MAPPING.keySet());
+        return indices;
     }
 
-    private static List<ItemStack> snapshot(ServerPlayer player, List<GuardedSlot> slots) {
-        List<ItemStack> stacks = new ArrayList<>(slots.size());
-        for (GuardedSlot slot : slots) {
-            stacks.add(player.getInventory().getItem(slot.index()).copy());
+    /** {@return a copy of every inventory slot} */
+    private static List<ItemStack> snapshot(ServerPlayer player) {
+        Inventory inventory = player.getInventory();
+        List<ItemStack> stacks = new ArrayList<>(inventory.getContainerSize());
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            stacks.add(inventory.getItem(slot).copy());
         }
         return stacks;
+    }
+
+    /** Puts every inventory slot back to a previous snapshot. */
+    private static void revert(ServerPlayer player, List<ItemStack> previous) {
+        Inventory inventory = player.getInventory();
+        for (int slot = 0; slot < Math.min(previous.size(), inventory.getContainerSize()); slot++) {
+            inventory.setItem(slot, previous.get(slot).copy());
+        }
     }
 
     /**
@@ -247,6 +258,10 @@ public final class UseGuard {
             // Fully trusted: the progress bar is the whole story, no dialog.
             PENDING.remove(id);
             reapply(player, pending);
+            // The snapshot still describes the state from before the interception, so it has to go:
+            // leaving it behind made the next tick read the stack this method just put back as a
+            // brand new change, and the item was verified over and over for ever.
+            SNAPSHOTS.remove(id);
             GetsKeeper.LOGGER.debug("{} passed verification without a dialog", itemId);
             return;
         }
@@ -274,6 +289,9 @@ public final class UseGuard {
 
         switch (decision) {
             case CONTINUE -> {
+                // Pressing "Continue" is what authorizes an item, which is why the answer has to be
+                // written down: without this the same item was verified again on its next use for ever.
+                AuthorizationService.authorize(player, SourceRecorder.itemId(pending.stack()));
                 reapply(player, pending);
                 GetsKeeper.LOGGER.info("{} chose to continue using {}", player.getScoreboardName(),
                         SourceRecorder.itemId(pending.stack()));
@@ -283,11 +301,35 @@ public final class UseGuard {
                 GetsKeeper.LOGGER.info("{} moved {} to the void ({} stack(s))", player.getScoreboardName(),
                         SourceRecorder.itemId(pending.stack()), cleared);
             }
-            case CANCEL -> GetsKeeper.LOGGER.info("{} cancelled the use of {}", player.getScoreboardName(),
-                    SourceRecorder.itemId(pending.stack()));
+            case CANCEL -> {
+                int returned = returnToInventory(player, pending);
+                GetsKeeper.LOGGER.info("{} cancelled the use of {} ({} stack(s) returned)", player.getScoreboardName(),
+                        SourceRecorder.itemId(pending.stack()), returned);
+            }
         }
 
         SNAPSHOTS.remove(id);
+    }
+
+    /**
+     * Puts the intercepted stack back into the inventory after a cancelled verification.
+     *
+     * <p>The interception took the stack out of the inventory, so cancelling has to hand it back; the
+     * player asked for nothing to happen, not for the item to disappear. Only a slot move has an item
+     * to give back - a cancelled use never removed anything.
+     *
+     * @return how many stacks were returned
+     */
+    private static int returnToInventory(ServerPlayer player, Pending pending) {
+        if (pending.slot().index() < 0 || pending.stack().isEmpty()) {
+            return 0;
+        }
+        ItemStack returning = pending.stack().copy();
+        if (!player.getInventory().add(returning) && !returning.isEmpty()) {
+            // Nowhere to put it: drop it rather than delete it.
+            player.drop(returning, false);
+        }
+        return 1;
     }
 
     /** Tries to run the intercepted operation again. Failures are swallowed on purpose. */

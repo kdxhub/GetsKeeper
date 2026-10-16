@@ -44,7 +44,16 @@ public class MacDialogScreen extends Screen {
     protected final boolean warning;
     protected final boolean closable;
     protected final List<Choice> choices;
-    private final Runnable onDismiss;
+
+    /**
+     * The choice Escape stands in for, and whether a choice has already been taken.
+     *
+     * <p>Escape is not a silent dismissal: it takes the same action as the safe button, which for
+     * every dialog in this mod is the non-destructive one ("Cancel", "Done", "OK"). Closing without
+     * deciding would leave the server waiting for an answer and the intercepted item in limbo.
+     */
+    private Choice dismissChoice;
+    private boolean answered;
 
     private int panelX;
     private int panelY;
@@ -59,7 +68,6 @@ public class MacDialogScreen extends Screen {
         this.warning = builder.warning;
         this.closable = builder.closable;
         this.choices = List.copyOf(builder.choices);
-        this.onDismiss = builder.onDismiss;
     }
 
     public static Builder builder(Component title) {
@@ -74,7 +82,6 @@ public class MacDialogScreen extends Screen {
         private ItemStack icon = ItemStack.EMPTY;
         private boolean warning;
         private boolean closable = true;
-        private Runnable onDismiss;
         private final List<Choice> choices = new ArrayList<>();
 
         private Builder(Component title) {
@@ -108,11 +115,6 @@ public class MacDialogScreen extends Screen {
 
         public Builder choice(Choice choice) {
             this.choices.add(choice);
-            return this;
-        }
-
-        public Builder onDismiss(Runnable onDismiss) {
-            this.onDismiss = onDismiss;
             return this;
         }
 
@@ -167,11 +169,36 @@ public class MacDialogScreen extends Screen {
         for (int index = 0; index < count; index++) {
             Choice choice = choices.get(index);
             int x = startX + index * (BUTTON_WIDTH + 8);
+            // Every button closes the dialog once it has acted. Forgetting that is why the dialogs
+            // used to stay on screen after a click.
+            Runnable action = () -> choose(choice);
+            if (!choice.destructive() && dismissChoice == null) {
+                dismissChoice = choice;
+            }
             MacButton button = choice.destructive()
-                    ? MacButton.destructive(x, y, BUTTON_WIDTH, MacTheme.BUTTON_HEIGHT, choice.label(), choice.action())
+                    ? MacButton.destructive(x, y, BUTTON_WIDTH, MacTheme.BUTTON_HEIGHT, choice.label(), action)
                     : new MacButton(x, y, BUTTON_WIDTH, MacTheme.BUTTON_HEIGHT, choice.label(), choice.primary(),
-                            choice.action());
+                            action);
             addRenderableWidget(button);
+        }
+    }
+
+    /** Runs a choice and closes the dialog, exactly once. */
+    private void choose(Choice choice) {
+        if (answered) {
+            return;
+        }
+        answered = true;
+        try {
+            choice.action().run();
+        } finally {
+            close();
+        }
+    }
+
+    private void close() {
+        if (minecraft != null) {
+            minecraft.setScreen(null);
         }
     }
 
@@ -237,11 +264,19 @@ public class MacDialogScreen extends Screen {
         return closable;
     }
 
+    /**
+     * Escape acts as the safe choice rather than as a dismissal.
+     *
+     * <p>Vanilla's screen already routes Escape here, and only when {@link #shouldCloseOnEsc()} allows
+     * it, so a dialog marked {@link Builder#notClosable()} is unaffected.
+     */
     @Override
     public void onClose() {
-        if (onDismiss != null) {
-            onDismiss.run();
+        if (!answered && dismissChoice != null) {
+            choose(dismissChoice);
+            return;
         }
+        answered = true;
         super.onClose();
     }
 

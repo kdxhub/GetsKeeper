@@ -24,6 +24,7 @@ import net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import top.kdxiaoyi.mod.getskeeper.GetsKeeper;
+import top.kdxiaoyi.mod.getskeeper.item.MountedContainerImageItem;
 import top.kdxiaoyi.mod.getskeeper.data.GKAttachments;
 
 /**
@@ -273,7 +274,7 @@ public final class SourceRecorder {
         var inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (!stack.isEmpty()) {
+            if (!stack.isEmpty() && isRecordable(stack)) {
                 counts.merge(itemId(stack), stack.getCount(), Integer::sum);
             }
         }
@@ -287,9 +288,22 @@ public final class SourceRecorder {
     }
 
     private static void record(ServerPlayer player, ItemStack stack, ItemSource source) {
+        if (!isRecordable(stack)) {
+            return;
+        }
         var ledger = player.getData(GKAttachments.SOURCES.get());
         ItemSource stamped = source.withAcquisition(player.getScoreboardName(), System.currentTimeMillis());
         player.setData(GKAttachments.SOURCES.get(), ledger.withSource(itemId(stack), stamped, stack.getCount()));
+    }
+
+    /**
+     * {@return whether this stack is one the records should mention}
+     *
+     * <p>The mod's own container image is never recorded. It is handed out by the mod itself, so
+     * writing a source for it would only describe the mod to itself.
+     */
+    public static boolean isRecordable(ItemStack stack) {
+        return !MountedContainerImageItem.isImage(stack);
     }
 
     /** {@return the {@code namespace:path} id of an item stack, ignoring components} */

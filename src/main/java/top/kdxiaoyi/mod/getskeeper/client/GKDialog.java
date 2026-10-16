@@ -32,13 +32,18 @@ public final class GKDialog {
         return Minecraft.getInstance();
     }
 
-    /** The "the backpack is full" prompt, shown over the pickup screen. */
-    public static MacDialogScreen inventoryFull(String ownerName, Runnable onAcknowledge) {
+    /**
+     * The "the backpack is full" prompt.
+     *
+     * <p>It replaces the pickup screen rather than covering it, so acknowledging it closes the whole
+     * thing: the pickup screen's removal is what tells the server to leave the items where they are.
+     */
+    public static MacDialogScreen inventoryFull(String ownerName) {
         return MacDialogScreen.builder(Component.translatable("getskeeper.dialog.inventory_full.title"))
                 .warning()
                 .body(Component.translatable("getskeeper.dialog.inventory_full.body", ownerName))
                 .notClosable()
-                .choice(MacDialogScreen.Choice.primary(Component.translatable("getskeeper.dialog.ok"), onAcknowledge))
+                .choice(MacDialogScreen.Choice.primary(Component.translatable("getskeeper.dialog.ok"), () -> {}))
                 .build();
     }
 
@@ -62,7 +67,6 @@ public final class GKDialog {
                         () -> decide(VerificationDecision.CANCEL)))
                 .choice(MacDialogScreen.Choice.primary(Component.translatable("getskeeper.dialog.continue"),
                         () -> decide(VerificationDecision.CONTINUE)))
-                .onDismiss(() -> decide(VerificationDecision.CANCEL))
                 .build();
     }
 
@@ -75,7 +79,6 @@ public final class GKDialog {
                         () -> decide(VerificationDecision.CANCEL)))
                 .choice(MacDialogScreen.Choice.destructive(Component.translatable("getskeeper.dialog.void"),
                         () -> decide(VerificationDecision.VOID)))
-                .onDismiss(() -> decide(VerificationDecision.CANCEL))
                 .build();
     }
 
@@ -88,7 +91,6 @@ public final class GKDialog {
                         () -> decide(VerificationDecision.CANCEL)))
                 .choice(MacDialogScreen.Choice.destructive(Component.translatable("getskeeper.dialog.void"),
                         () -> decide(VerificationDecision.VOID)))
-                .onDismiss(() -> decide(VerificationDecision.CANCEL))
                 .build();
     }
 
@@ -99,7 +101,6 @@ public final class GKDialog {
                 .body(Component.translatable("getskeeper.dialog.restricted.body", stack.getHoverName()))
                 .choice(MacDialogScreen.Choice.primary(Component.translatable("getskeeper.dialog.ok"),
                         () -> decide(VerificationDecision.CANCEL)))
-                .onDismiss(() -> decide(VerificationDecision.CANCEL))
                 .build();
     }
 

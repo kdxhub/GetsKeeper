@@ -9,6 +9,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import top.kdxiaoyi.mod.getskeeper.item.MountedImageGuard;
 import top.kdxiaoyi.mod.getskeeper.command.GKCommands;
 import top.kdxiaoyi.mod.getskeeper.config.GKConfig;
 import top.kdxiaoyi.mod.getskeeper.data.GKAttachments;
@@ -59,6 +60,7 @@ public final class GetsKeeper {
         GKConfig.registerConfigEvents(modBus);
 
         // --- Game bus: gameplay hooks ---
+        MountedImageGuard.register();
         PickupInterceptor.register();
         SourceRecorder.register();
         UseGuard.register();
