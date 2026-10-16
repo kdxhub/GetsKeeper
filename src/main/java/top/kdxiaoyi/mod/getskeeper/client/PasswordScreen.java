@@ -4,6 +4,7 @@ package top.kdxiaoyi.mod.getskeeper.client;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -48,6 +49,9 @@ public class PasswordScreen extends Screen {
     private final int minLength;
     private final String suggestedUsername;
 
+    /** The screen to go back to, or {@code null} when the prompt stands on its own. */
+    private final Screen parent;
+
     private EditBox usernameField;
     private EditBox passwordField;
     private Component error;
@@ -60,17 +64,27 @@ public class PasswordScreen extends Screen {
 
     /** For a prompt that is asking for an existing password, where no length rule applies. */
     public PasswordScreen(PasswordPurpose purpose, String itemId, String suggestedUsername, boolean mandatory) {
-        this(purpose, itemId, suggestedUsername, mandatory, 0);
+        this(purpose, itemId, suggestedUsername, mandatory, 0, null);
     }
 
     public PasswordScreen(PasswordPurpose purpose, String itemId, String suggestedUsername, boolean mandatory,
-            int minLength) {
+            int minLength, Screen parent) {
         super(Component.translatable("getskeeper.password.title"));
         this.purpose = purpose;
         this.itemId = itemId == null ? "" : itemId;
         this.mandatory = mandatory;
         this.minLength = minLength;
         this.suggestedUsername = suggestedUsername == null ? "" : suggestedUsername;
+        this.parent = parent;
+    }
+
+    @Override
+    public void onClose() {
+        // A prompt opened from a page goes back to that page, so the player sees what their answer
+        // changed - the list of refusals on the privacy page, with the granted item gone from it. The
+        // forced first-time setup is opened from the world and closes to the world.
+        active = null;
+        Minecraft.getInstance().setScreen(parent);
     }
 
     /** {@return whether this screen is asking the player to pick a password rather than recall one} */

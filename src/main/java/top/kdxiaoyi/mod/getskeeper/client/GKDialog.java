@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -195,9 +196,16 @@ public final class GKDialog {
         return distinct.size();
     }
 
-    /** Opens the password prompt. */
+    /**
+     * Opens the password prompt.
+     *
+     * <p>Whatever was on screen is remembered as its parent, so answering from the privacy page comes
+     * back to the privacy page - where the answer's effect, a granted item leaving the list, is
+     * visible.
+     */
     public static void showPasswordPrompt(PasswordPurpose purpose, String itemId, String suggestedUsername,
             boolean mandatory, int minLength) {
-        minecraft().setScreen(new PasswordScreen(purpose, itemId, suggestedUsername, mandatory, minLength));
+        Screen parent = minecraft().screen;
+        minecraft().setScreen(new PasswordScreen(purpose, itemId, suggestedUsername, mandatory, minLength, parent));
     }
 }

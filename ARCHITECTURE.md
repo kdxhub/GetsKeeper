@@ -418,6 +418,10 @@ are the rules the design implies but never spells out.
 15. **The pickup screen has a Close button.** Escape does the same thing and the server holds the
     items back until the screen is answered either way, but a screen that can only be left with a key
     the player has to guess reads as a screen that is stuck.
+16. **The password prompt goes back where it came from.** Opened from the privacy page, it returns to
+    the privacy page, which is where the answer's effect is visible: a granted item leaves the list of
+    refusals, and the list is redrawn from the payload the server sends back. Opened as the forced
+    first-time setup, it has no parent and closes to the world as before.
 
 ---
 
