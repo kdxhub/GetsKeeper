@@ -14,7 +14,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import top.kdxiaoyi.mod.getskeeper.net.GKPayloads;
 import top.kdxiaoyi.mod.getskeeper.net.PasswordPurpose;
 import top.kdxiaoyi.mod.getskeeper.net.VerificationDecision;
-import top.kdxiaoyi.mod.getskeeper.security.SessionGuards;
 
 /**
  * Builds every prompt in the mod.

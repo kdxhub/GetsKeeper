@@ -9,8 +9,6 @@ import top.kdxiaoyi.mod.getskeeper.pickup.PickupInterceptor;
 import top.kdxiaoyi.mod.getskeeper.security.AuthorizationService;
 import top.kdxiaoyi.mod.getskeeper.security.PasswordService;
 import top.kdxiaoyi.mod.getskeeper.security.SessionGuards;
-import top.kdxiaoyi.mod.getskeeper.source.ItemSource;
-import top.kdxiaoyi.mod.getskeeper.source.SourceRecorder;
 import top.kdxiaoyi.mod.getskeeper.use.UseGuard;
 
 /**
@@ -126,10 +124,5 @@ public final class GKServerHandler {
             GKNetwork.sendPasswordPrompt(player, PasswordPurpose.GRANT_BLOCKED_USE, payload.itemId(),
                     player.getScoreboardName(), false);
         });
-    }
-
-    /** Silences the unused-import warning for {@link SourceRecorder}. */
-    static String describeStack(net.minecraft.world.item.ItemStack stack) {
-        return SourceRecorder.itemId(stack);
     }
 }

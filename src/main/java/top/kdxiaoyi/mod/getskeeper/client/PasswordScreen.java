@@ -1,6 +1,5 @@
 package top.kdxiaoyi.mod.getskeeper.client;
 
-import java.util.List;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
