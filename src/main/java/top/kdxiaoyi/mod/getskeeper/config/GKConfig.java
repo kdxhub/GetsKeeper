@@ -61,18 +61,19 @@ public final class GKConfig {
                 "",
                 "Anything that is on none of these lists counts as UNTRUSTED.",
                 "",
-                "  fully_trusted - no verification at all. The item is usable straight away.",
+                "  fully_trusted - verify silently: the bar plays, then the operation goes through.",
                 "  trusted       - verify, then ask the player to confirm.",
                 "  blocked       - verify, then state that the item is broken and offer to void it.");
 
         builder.push("trust_lists");
         FULLY_TRUSTED = builder
                 .comment(
-                        "Namespaces that are above suspicion. Verifying them is pointless, so their",
-                        "items never start a verification and never raise a dialog. Vanilla is trusted",
-                        "out of the box, but the operator may remove 'minecraft' here - do so if you do",
-                        "not even trust the base game. Removing an entry does not change anything else:",
-                        "the entry just falls through to the next list.")
+                        "Namespaces that are above suspicion. Their items are still verified, but the",
+                        "verification is the whole of it: no dialog ever follows, and nothing has to be",
+                        "answered. Vanilla is trusted out of the box, but the operator may remove",
+                        "'minecraft' here - do so if you do not even trust the base game. Removing an",
+                        "entry does not change anything else: the entry just falls through to the next",
+                        "list.")
                 .defineListAllowEmpty("fully_trusted", List.of("minecraft"), () -> "minecraft", GKConfig::isValidEntry);
         TRUSTED = builder
                 .comment(

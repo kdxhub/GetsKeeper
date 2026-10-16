@@ -174,12 +174,16 @@ not resolve the way vanilla does.
   same as the safe button ("Cancel", "Done", "OK"). Neither answer costs you a stack or hands you a
   second copy: cancelling puts the operation back exactly as it was, and continuing runs it exactly
   once. That holds for a move, a shift-click and an F swap alike.
-* **A fully trusted namespace is never verified.** Its items are usable straight away - no progress
-  bar, no dialog, no dropped first use. The lists are in the config file, and `minecraft` is on the
-  fully trusted list out of the box.
+* **A fully trusted namespace is verified without a dialog.** The progress bar plays, then the
+  operation goes through with nothing to answer. The lists are in the config file, and `minecraft` is
+  on the fully trusted list out of the box.
 * **Everything that acts with an item is covered:** moving it into a hand or a piece of equipment,
   selecting its hotbar slot, dropping it into a crafting grid or a work block input, using it on a
-  block, eating or drawing it, mining with it, and swapping it into the other hand with F.
+  block, eating or drawing it, mining with it, right clicking with it - which is how armour is put
+  on - and swapping it into the other hand with F.
+* **Blocks that answer a right click still work.** With an unverified item in hand a chest, a door or
+  a button still opens or presses: that is the block being used, not the item, and container
+  interaction is outside verification.
 * **The verification bar is drawn over whatever is open**, including the inventory and other screens.
 * **Throwing an item away does not offer it back.** A stack still inside vanilla's own pickup delay -
   the moment right after you throw it - is skipped by the pickup scan. While a pickup screen is open,

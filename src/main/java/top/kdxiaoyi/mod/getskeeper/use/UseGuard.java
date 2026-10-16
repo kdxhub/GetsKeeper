@@ -57,6 +57,8 @@ import top.kdxiaoyi.mod.getskeeper.trust.TrustService;
  *   <li><b>{@code LivingEntityUseItemEvent.Start}</b> vetoes using one (eating, drawing a bow, ...).</li>
  *   <li><b>{@code PlayerInteractEvent.LeftClickBlock}</b> vetoes mining with one.</li>
  *   <li><b>{@code LivingSwapItemsEvent.Hands}</b> vetoes swapping one into the other hand with F.</li>
+ *   <li><b>{@code PlayerInteractEvent.RightClickItem}</b> vetoes right clicking with one, which is
+ *       what equipping a piece of armour is.</li>
  * </ol>
  *
  * <p>A verification is a randomized wait, drawn as the experience bar overlay, followed by a dialog
@@ -117,29 +119,24 @@ public final class UseGuard {
         NeoForge.EVENT_BUS.addListener(UseGuard::onUseItemStart);
         NeoForge.EVENT_BUS.addListener(UseGuard::onLeftClickBlock);
         NeoForge.EVENT_BUS.addListener(UseGuard::onSwapHands);
+        NeoForge.EVENT_BUS.addListener(UseGuard::onRightClickItem);
         NeoForge.EVENT_BUS.addListener(UseGuard::onPlayerLoggedOut);
     }
 
     /**
-     * {@return {@code true} when the stack may be used without any verification}
+     * {@return {@code true} when the stack may be used without a verification pass at all}
      *
-     * <p>Three things are trusted outright, and none of them starts a verification at all:
+     * <p>Two things never start one: the mod's own items, because verifying the image would mean
+     * verifying the tool that vouches for a batch, and anything the player has authorized.
      *
-     * <ul>
-     *   <li>the mod's own items, which are the tool this whole system runs on - verifying the image
-     *       would mean verifying the thing that vouches for a batch,</li>
-     *   <li>anything the player has authorized, and</li>
-     *   <li>a fully trusted namespace or item id. Those used to go through a silent verification,
-     *       which still meant a progress bar and a dropped first use on every single action; a
-     *       namespace the operator marked as fully trusted does not need watching.</li>
-     * </ul>
+     * <p>A fully trusted namespace is deliberately *not* on this list. "Fully trusted" means the
+     * operator wants it watched but never questioned, so it still runs a pass - the progress bar is
+     * the whole of it, followed by a verdict the client shows nothing for. Skipping the pass
+     * altogether took the bar away as well, which is what the trust list is meant to control: only
+     * moving an entry to the other lists takes the bar away.
      */
     public static boolean isTrusted(Player player, ItemStack stack) {
-        if (MountedContainerImageItem.isImage(stack) || AuthorizationService.isUsable(player, stack)) {
-            return true;
-        }
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return itemId == null || TrustService.resolve(itemId).passesSilently();
+        return MountedContainerImageItem.isImage(stack) || AuthorizationService.isUsable(player, stack);
     }
 
     // --- interception ------------------------------------------------------------------------
@@ -163,11 +160,22 @@ public final class UseGuard {
         if (!GKConfig.useGuardEnabled() || !(event.getPlayer() instanceof ServerPlayer player)) {
             return;
         }
+        if (event.getUsePhase() == UseItemOnBlockEvent.UsePhase.BLOCK) {
+            // The block answering a right click - a chest opening, a button being pressed - is not the
+            // item being used, and refusing it stopped those blocks from working at all while an
+            // unverified item happened to be in hand. Container interaction is outside verification.
+            return;
+        }
         ItemStack stack = event.getItemStack();
         if (stack.isEmpty() || isTrusted(player, stack)) {
             return;
         }
-        event.cancelWithResult(InteractionResult.FAIL);
+        // The before-block phase is the item's own pre-emptive action, and vanilla hands the block its
+        // turn only if this returns PASS. The item is refused either way; failing hard here would take
+        // the block's interaction down with it.
+        event.cancelWithResult(event.getUsePhase() == UseItemOnBlockEvent.UsePhase.ITEM_BEFORE_BLOCK
+                ? InteractionResult.PASS
+                : InteractionResult.FAIL);
         begin(player, stack, new GuardedSlot(-1));
     }
 
@@ -180,6 +188,29 @@ public final class UseGuard {
      * verification. Creative mode is the one exception: vanilla breaks the block there without
      * consulting this event, which is noted in the architecture document.
      */
+    /**
+     * Right clicking with an item: equipping it, drinking it, placing it at nothing.
+     *
+     * <p>This is the one hook that covers putting armour on. Equipping moves a stack into an
+     * equipment slot without going through use-on-block or use-item at all, so nothing else asked -
+     * and by the time the slot watcher saw it, the item was already worn. Vanilla asks this event
+     * first, so the answer is simply "no" and there is nothing to undo.
+     */
+    private static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        if (!GKConfig.useGuardEnabled() || !(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        ItemStack stack = event.getItemStack();
+        if (stack.isEmpty() || isTrusted(player, stack)) {
+            return;
+        }
+        // PASS rather than FAIL: the item is refused, but the client should still be free to try the
+        // block behind it, which is how vanilla chains a right click.
+        event.setCancellationResult(InteractionResult.PASS);
+        event.setCanceled(true);
+        begin(player, stack, new GuardedSlot(-1));
+    }
+
     private static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         if (!GKConfig.useGuardEnabled()
                 || event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.START
@@ -432,8 +463,7 @@ public final class UseGuard {
         UUID id = player.getUUID();
         ItemStack stack = pending.stack();
         String itemId = SourceRecorder.itemId(stack);
-        net.minecraft.resources.Identifier registryId =
-                net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier registryId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         TrustLevel trust = registryId == null ? TrustLevel.UNTRUSTED : TrustService.resolve(registryId);
 
         if (trust.passesSilently()) {

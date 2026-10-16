@@ -200,11 +200,22 @@ The interception points are:
 | `LivingEntityUseItemEvent.Start` | using one at all: eating, drawing a bow, and so on |
 | `PlayerInteractEvent.LeftClickBlock` | mining with one |
 | `LivingSwapItemsEvent.Hands` | swapping one into the other hand with F |
+| `PlayerInteractEvent.RightClickItem` | right clicking with one, which is what equipping armour is |
 
-The last two were added because they were ways to act with an unverified stack that nothing else
-covered, and because both are asked *before* they happen: the F swap in particular used to be undone
-after the fact, and answering that dialog could duplicate the stack. Now the event is simply refused,
-so there is nothing to undo and nothing to duplicate.
+The last three were added because they were ways to act with an unverified stack that nothing else
+covered, and because all of them are asked *before* they happen: the F swap in particular used to be
+undone after the fact, and answering that dialog could duplicate the stack. Now the event is simply
+refused, so there is nothing to undo and nothing to duplicate. Equipping armour goes through the
+right-click event alone - it moves a stack into an equipment slot without ever touching the
+use-on-block or use-item path - and the slot watcher only saw it after the item was already worn.
+
+The use-on-block event is the one that is filtered rather than taken whole. It is fired three times
+for a single right click: twice for the item's own action and once, in the block phase, for the
+block's answer to being clicked. Only the item's phases are the item being used; refusing the block
+phase meant a chest or a door would not open at all while an unverified item happened to be in hand,
+which is also the opposite of what the design says - container interaction is not verified. The item's
+pre-emptive phase is cancelled with `PASS` rather than `FAIL`, because vanilla hands the block its
+turn only if that phase returns `PASS`: the item is refused, and the block still gets to behave.
 
 "Guarded slots" are the selected hotbar slot, the offhand, and every slot in
 `Inventory.EQUIPMENT_SLOT_MAPPING`. The rest of the backpack is deliberately not watched: moving an
@@ -393,12 +404,12 @@ are the rules the design implies but never spells out.
    lost: it is filtered out of the death drops and copied to the respawned player. It is also exempt
    from every gate in the mod - not verified, not intercepted on pickup, not written into the source
    records - because verifying the image would mean verifying the tool that does the verifying.
-10. **A fully trusted namespace is not verified at all.** It used to get what the config called a
-    "silent verification": a progress bar, a wait, and a dropped first use, every time. Trust levels
-    are the operator saying an item needs no watching, so `isTrusted` returns true for them and no
-    hook starts anything. The one place a silent verdict can still happen is a config reload landing
-    between an interception and its resolution; that path now sends the verdict like any other, which
-    is what tells the client the wait is over, and the client draws nothing for it.
+10. **A fully trusted namespace is verified, silently.** The pass runs - the progress bar plays - and
+    the verdict that ends it is sent, which is what makes the bar disappear; the client draws nothing
+    else for `FULLY_TRUSTED`, so there is no dialog. Skipping the pass altogether was tried and was
+    wrong: the trust lists are how the operator chooses between "watched but never questioned" and
+    "watched and questioned", so removing the bar took away the only feedback a fully trusted item
+    had. Only the mod's own items and authorized ones skip a pass entirely.
 11. **Left clicking is starting to mine.** Mining does not go through the use-on-block or the
     use-item path, so an unverified pickaxe could break a block. The swing is now vetoed at its
     start, which keeps the block intact; the repeat events vanilla sends while the button is held all

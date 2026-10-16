@@ -56,8 +56,15 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
   "槽里一份、光标一份"的复制。**只把监视槽写回旧值再把新栈写进该槽** 也会复制（撤销已经把栈放回去了）。
 - **能被 vanilla 提前问的事件要在事件里拒绝，别事后撤销**：F 交换 = `LivingSwapItemsEvent.Hands`（可取消），
   左键破坏 = `PlayerInteractEvent.LeftClickBlock`（START；**创造模式无效**）。事后撤销再复现是复制/Loss 的温床。
-- **`isTrusted` 必须包含信任等级**：`FULLY_TRUSTED`（`passesSilently()`）应当免检 —— 免检物品不该出现进度条，
-  更不该因为"静默验证"把第一次使用丢掉。`resolve` 的静默分支仍要发 verdict，否则客户端进度条永不消失。
+- **`isTrusted` 只放行"本模组物品"与"玩家已授权"两件事**：`FULLY_TRUSTED` **仍要走验证**（进度条 + 静默通过、
+  无对话）。把 pass 整个跳过会让免检物品连进度条都没有 —— 信任列表本身就是"被看着但不被质问"这一档，
+  进度条是它唯一的反馈。静默分支必须**发 verdict**，否则客户端进度条永不消失（这条不变）。
+- **右键"使用物品"必须单独拦**：`PlayerInteractEvent.RightClickItem`（可取消）是 vanilla 在
+  `ServerPlayerGameMode#useItem` 开头就问的事件，**装备盔甲走的就是它**（`Equippable#swapWithEquipmentSlot`）。
+  装备不经过 use-on-block / use-item，等 tick 守卫发现时物品已经穿上，事后撤销还要碰 footprint（易复制）。
+- **`UseItemOnBlockEvent` 有三个阶段，只拦物品那两个**：BLOCK 阶段是"方块对右键的回应"（开箱子、按钮），
+  拦它会让拿着未授权物品时开不了箱子/门。ITEM_BEFORE_BLOCK 阶段要用 **`PASS` 取消而不是 `FAIL`** ——
+  vanilla 只有该阶段返回 PASS 才把回合交给方块（`if (result != PASS) return result;`）。
 - **界面层盖不住 Screen**：vanilla 是 HUD 先渲染、Screen 后渲染，NeoForge 的 `drawScreen` 还会把注册的 GuiLayer
   画在 Screen 更早。要让自己的 HUD 出现在界面之上，必须挂 `ScreenEvent.Render.Post`（并在有界面时跳过 HUD 层那一遍）。
 - **`GuiGraphics#drawCenteredString/drawString` 的旧重载总是带阴影**；`shadow=false` 的那版要自己算居中。
