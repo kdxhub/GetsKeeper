@@ -25,6 +25,22 @@ public final class SessionGuards {
         REFUSED.computeIfAbsent(playerId, key -> new LinkedHashSet<>()).add(itemId);
     }
 
+    /**
+     * Drops an item from the list, because it is no longer refused.
+     *
+     * <p>Granting an item through "use anyway" makes it permanently authorized; leaving it on the
+     * list would keep offering a button for something the player has already settled.
+     */
+    public static synchronized void unmark(UUID playerId, String itemId) {
+        Set<String> refused = REFUSED.get(playerId);
+        if (refused != null) {
+            refused.remove(itemId);
+            if (refused.isEmpty()) {
+                REFUSED.remove(playerId);
+            }
+        }
+    }
+
     public static synchronized boolean wasRefused(UUID playerId, String itemId) {
         return REFUSED.getOrDefault(playerId, Set.of()).contains(itemId);
     }

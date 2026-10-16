@@ -122,7 +122,7 @@ public class PasswordScreen extends Screen {
 
         int cursorY = panelY + HEADLINE_Y;
         for (FormattedCharSequence line : font.split(headline(), PANEL_WIDTH - 32)) {
-            graphics.drawCenteredString(font, line, panelX + PANEL_WIDTH / 2, cursorY, MacTheme.TEXT_PRIMARY);
+            MacTheme.centered(graphics, font, line, panelX + PANEL_WIDTH / 2, cursorY, MacTheme.TEXT_PRIMARY);
             cursorY += font.lineHeight + 2;
         }
 

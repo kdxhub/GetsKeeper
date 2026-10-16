@@ -26,12 +26,15 @@ import top.kdxiaoyi.mod.getskeeper.net.GKPayloads;
  *   <li>the container image itself, labelled {@code Inventory} in every language.</li>
  * </ul>
  *
- * <p>Nothing is taken until the drag is dropped on the image. Closing the screen - with Escape, with
- * the button, or by replacing it - tells the server to leave everything where it is.
+ * <p>Nothing is taken until the drag is dropped on the image. Closing the screen - with the Close
+ * button, with Escape, or by replacing it - tells the server to leave everything where they are, and
+ * the server holds the items back until the screen is answered either way, so nothing can be picked up
+ * behind its back.
  */
 public final class PickupScreen extends Screen {
     private static final int PANEL_WIDTH = 340;
     private static final int PANEL_HEIGHT = 168;
+    private static final int CLOSE_WIDTH = 84;
     private static final int ICON_SIZE = 32;
     private static final int SLOT_SIZE = 44;
 
@@ -67,6 +70,12 @@ public final class PickupScreen extends Screen {
         iconY = panelY + 34;
         chestX = panelX + PANEL_WIDTH - 34 - SLOT_SIZE;
         chestY = panelY + 26;
+
+        // A visible way out. Escape does the same thing, but a screen that can only be left with a key
+        // the player has to guess is a screen that looks stuck.
+        addRenderableWidget(new MacButton(panelX + (PANEL_WIDTH - CLOSE_WIDTH) / 2,
+                panelY + PANEL_HEIGHT - 30, CLOSE_WIDTH, MacTheme.BUTTON_HEIGHT,
+                Component.translatable("getskeeper.pickup.close"), false, this::onClose));
     }
 
     @Override
@@ -91,7 +100,7 @@ public final class PickupScreen extends Screen {
         Component label = aggregateLabel();
         int labelY = iconY + ICON_SIZE + 34;
         for (var line : font.split(label, PANEL_WIDTH - 120)) {
-            graphics.drawCenteredString(font, line, panelX + PANEL_WIDTH / 2 - 46, labelY, MacTheme.TEXT_PRIMARY);
+            MacTheme.centered(graphics, font, line, panelX + PANEL_WIDTH / 2 - 46, labelY, MacTheme.TEXT_PRIMARY);
             labelY += font.lineHeight + 2;
         }
 
@@ -103,12 +112,12 @@ public final class PickupScreen extends Screen {
                 isOverDropZone(mouseX, mouseY) ? 0xFFEAF3FF : MacTheme.SURFACE_ELEVATED);
         graphics.renderItem(CHEST, chestX + (SLOT_SIZE - 16) / 2, chestY + (SLOT_SIZE - 16) / 2 - 2);
         // "Inventory" is deliberately not translated.
-        graphics.drawCenteredString(font, Component.literal("Inventory"), chestX + SLOT_SIZE / 2,
+        MacTheme.centered(graphics, font, Component.literal("Inventory"), chestX + SLOT_SIZE / 2,
                 chestY + SLOT_SIZE - 2, MacTheme.TEXT_SECONDARY);
 
         // A hint under the image, and the dragged icon following the cursor.
-        graphics.drawCenteredString(font, Component.translatable("getskeeper.pickup.hint"), panelX + PANEL_WIDTH / 2,
-                panelY + PANEL_HEIGHT - 20, MacTheme.TEXT_SECONDARY);
+        MacTheme.centered(graphics, font, Component.translatable("getskeeper.pickup.hint"), panelX + PANEL_WIDTH / 2,
+                panelY + PANEL_HEIGHT - 50, MacTheme.TEXT_SECONDARY);
 
         if (dragging && !stacks.isEmpty()) {
             graphics.renderItem(stacks.get(0), (int) dragX - 8, (int) dragY - 8);

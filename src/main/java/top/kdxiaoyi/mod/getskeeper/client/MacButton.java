@@ -65,7 +65,7 @@ public final class MacButton extends AbstractWidget {
 
         MacTheme.fillRounded(graphics, getX(), getY(), getWidth(), getHeight(), MacTheme.CONTROL_RADIUS, background);
         int label = this.active ? (primary ? MacTheme.TEXT_ON_ACCENT : textColor) : MacTheme.TEXT_SECONDARY;
-        graphics.drawCenteredString(net.minecraft.client.Minecraft.getInstance().font, getMessage(),
+        MacTheme.centered(graphics, net.minecraft.client.Minecraft.getInstance().font, getMessage(),
                 getX() + getWidth() / 2,
                 getY() + (getHeight() - 8) / 2 + 1, label);
     }

@@ -118,7 +118,7 @@ public final class PrivacySecurityScreen extends Screen {
         MacTheme.card(graphics, panelX, panelY, PANEL_WIDTH, PANEL_HEIGHT, MacTheme.CARD_RADIUS,
                 MacTheme.SURFACE, MacTheme.SURFACE_BORDER);
 
-        graphics.drawCenteredString(font, Component.translatable("getskeeper.privacy.title"), panelX + PANEL_WIDTH / 2,
+        MacTheme.centered(graphics, font, Component.translatable("getskeeper.privacy.title"), panelX + PANEL_WIDTH / 2,
                 panelY + 16, MacTheme.TEXT_PRIMARY);
         MacTheme.text(graphics, font, Component.translatable("getskeeper.privacy.subtitle"), panelX + PADDING,
                 panelY + 32, MacTheme.TEXT_SECONDARY);

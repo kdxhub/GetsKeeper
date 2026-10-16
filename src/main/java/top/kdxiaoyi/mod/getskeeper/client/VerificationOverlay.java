@@ -54,6 +54,23 @@ public final class VerificationOverlay implements GuiLayer {
 
     @Override
     public void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
+        // While a screen is open this layer is drawn *behind* it - vanilla renders the HUD before the
+        // screen, and NeoForge's screen hook renders this layer even earlier than that - so the screen
+        // variant of this method is what puts the bar on top. See GetsKeeperClient.
+        if (Minecraft.getInstance().screen != null) {
+            return;
+        }
+        draw(graphics);
+    }
+
+    /** Draws the bar on top of the open screen, which is what the HUD layer cannot do. */
+    public void renderOverScreen(GuiGraphics graphics) {
+        if (Minecraft.getInstance().screen != null) {
+            draw(graphics);
+        }
+    }
+
+    private void draw(GuiGraphics graphics) {
         if (verifying.isEmpty()) {
             return;
         }
@@ -71,6 +88,7 @@ public final class VerificationOverlay implements GuiLayer {
         int barY = graphics.guiHeight() / 2 + 24;
 
         Component label = Component.translatable("getskeeper.verify.in_progress", verifying.getHoverName());
+        // The one label in the mod that keeps vanilla's shadow: it is drawn straight over the world.
         graphics.drawCenteredString(minecraft.font, label, centerX, barY - 14, 0xFFF2F2F2);
 
         // The bar sits on a dark plate so it stays readable over bright terrain.

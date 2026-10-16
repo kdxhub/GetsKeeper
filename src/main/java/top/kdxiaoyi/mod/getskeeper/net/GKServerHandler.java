@@ -86,6 +86,11 @@ public final class GKServerHandler {
                     accepted ? "accepted" : "rejected");
             GKNetwork.sendPasswordResult(player, purpose, payload.itemId(), accepted, false);
             if (accepted) {
+                if (AuthorizationService.record(player).isUsable(payload.itemId())) {
+                    // The item is allowed now, so it does not belong on the session list of refusals
+                    // any more. Resending the list is what makes the entry disappear.
+                    SessionGuards.unmark(player.getUUID(), payload.itemId());
+                }
                 GKNetwork.sendSessionBlocked(player);
             }
         });

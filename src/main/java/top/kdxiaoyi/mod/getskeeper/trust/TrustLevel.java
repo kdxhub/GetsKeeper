@@ -6,7 +6,7 @@ package top.kdxiaoyi.mod.getskeeper.trust;
  * <p>Anything that is on none of the three configured lists is {@link #UNTRUSTED}.
  */
 public enum TrustLevel {
-    /** Verifies silently, then lets the operation through without a dialog. */
+    /** Not verified at all: the operation goes through immediately, with no bar and no dialog. */
     FULLY_TRUSTED,
     /** Verifies, then asks the player to confirm. */
     TRUSTED,

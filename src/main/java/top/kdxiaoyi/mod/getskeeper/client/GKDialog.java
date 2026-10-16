@@ -82,11 +82,28 @@ public final class GKDialog {
                 .build();
     }
 
-    /** The blocked prompt. */
-    public static MacDialogScreen blocked(ItemStack stack) {
-        return MacDialogScreen.builder(Component.translatable("getskeeper.dialog.blocked.title", stack.getHoverName()))
-                .icon(stack)
-                .body(Component.translatable("getskeeper.dialog.blocked.body"))
+    /**
+     * The blocked prompt.
+     *
+     * <p>Like the trusted prompt, the body says who obtained the item, when, and from where. A blocked
+     * item that was in the inventory before the trust list was written has no source on record, and
+     * saying so is better than a timestamp of 1970.
+     */
+    public static MacDialogScreen blocked(ItemStack stack, String ownerName, long acquiredAt, String sourceKey,
+            String sourceLabel, String sourceCoordinates, String sourceDimension) {
+        var builder = MacDialogScreen.builder(
+                Component.translatable("getskeeper.dialog.blocked.title", stack.getHoverName()))
+                .icon(stack);
+
+        if (acquiredAt > 0 && !sourceKey.isEmpty()) {
+            Component source = Component.translatable(sourceKey, sourceLabel, sourceCoordinates, sourceDimension);
+            builder.body(Component.translatable("getskeeper.dialog.blocked.body", ownerName,
+                    TIMESTAMP.format(Instant.ofEpochMilli(acquiredAt)), source));
+        } else {
+            builder.body(Component.translatable("getskeeper.dialog.blocked.body_no_source", stack.getHoverName()));
+        }
+
+        return builder
                 .choice(MacDialogScreen.Choice.secondary(Component.translatable("getskeeper.dialog.cancel"),
                         () -> decide(VerificationDecision.CANCEL)))
                 .choice(MacDialogScreen.Choice.destructive(Component.translatable("getskeeper.dialog.void"),
@@ -130,7 +147,8 @@ public final class GKDialog {
             case FULLY_TRUSTED -> null;
             case TRUSTED -> trusted(stack, ownerName, acquiredAt, sourceKey, sourceLabel, sourceCoordinates, sourceDimension);
             case UNTRUSTED -> untrusted(stack);
-            case BLOCKED -> blocked(stack);
+            case BLOCKED -> blocked(stack, ownerName, acquiredAt, sourceKey, sourceLabel, sourceCoordinates,
+                    sourceDimension);
         };
         if (screen != null) {
             minecraft().setScreen(screen);

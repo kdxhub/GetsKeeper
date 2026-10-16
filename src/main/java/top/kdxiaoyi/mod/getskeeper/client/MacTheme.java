@@ -3,6 +3,7 @@ package top.kdxiaoyi.mod.getskeeper.client;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 
 /**
  * The look of every GetsKeeper screen.
@@ -95,12 +96,21 @@ public final class MacTheme {
         graphics.drawString(font, component, x, y, color, false);
     }
 
-    public static void textWithShadow(GuiGraphics graphics, Font font, Component component, int x, int y, int color) {
-        graphics.drawString(font, component, x, y, color, true);
+    /**
+     * Draws centred text without a shadow.
+     *
+     * <p>Every panel in this mod is drawn on an opaque card, so the drop shadow vanilla adds to text
+     * only smears the glyphs. The one place that does want a shadow is the verification bar's label,
+     * which sits over the world rather than over a card; it asks for one explicitly.
+     */
+    public static void centered(GuiGraphics graphics, Font font, Component component, int centerX, int y, int color) {
+        graphics.drawString(font, component, centerX - font.width(component) / 2, y, color, false);
     }
 
-    public static void centered(GuiGraphics graphics, Font font, Component component, int centerX, int y, int color) {
-        graphics.drawCenteredString(font, component, centerX, y, color);
+    /** Centres a line that {@code Font#split} already wrapped, which arrives as a character sequence. */
+    public static void centered(GuiGraphics graphics, Font font, FormattedCharSequence line, int centerX, int y,
+            int color) {
+        graphics.drawString(font, line, centerX - font.width(line) / 2, y, color, false);
     }
 
     /** Draws wrapped text and returns the height it used. */

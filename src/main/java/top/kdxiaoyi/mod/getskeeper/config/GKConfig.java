@@ -61,17 +61,18 @@ public final class GKConfig {
                 "",
                 "Anything that is on none of these lists counts as UNTRUSTED.",
                 "",
-                "  fully_trusted - verify silently, then let the operation through without a dialog.",
+                "  fully_trusted - no verification at all. The item is usable straight away.",
                 "  trusted       - verify, then ask the player to confirm.",
                 "  blocked       - verify, then state that the item is broken and offer to void it.");
 
         builder.push("trust_lists");
         FULLY_TRUSTED = builder
                 .comment(
-                        "Namespaces that are above suspicion. Vanilla is trusted out of the box,",
-                        "but the operator may remove 'minecraft' here - do so if you do not even trust",
-                        "the base game. Removing an entry does not change anything else: the entry just",
-                        "falls through to the next list.")
+                        "Namespaces that are above suspicion. Verifying them is pointless, so their",
+                        "items never start a verification and never raise a dialog. Vanilla is trusted",
+                        "out of the box, but the operator may remove 'minecraft' here - do so if you do",
+                        "not even trust the base game. Removing an entry does not change anything else:",
+                        "the entry just falls through to the next list.")
                 .defineListAllowEmpty("fully_trusted", List.of("minecraft"), () -> "minecraft", GKConfig::isValidEntry);
         TRUSTED = builder
                 .comment(
@@ -80,7 +81,8 @@ public final class GKConfig {
         BLOCKED = builder
                 .comment(
                         "Namespaces that are refused outright. Items from these namespaces are never",
-                        "usable; the dialog only offers to move the stack to the void.")
+                        "usable; the dialog only offers to move the stack to the void, and they are not",
+                        "listed on the privacy page, because there is no grant to offer for them.")
                 .defineListAllowEmpty("blocked", List.<String>of(), () -> "modid", GKConfig::isValidEntry);
         builder.pop();
 

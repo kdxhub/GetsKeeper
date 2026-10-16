@@ -224,7 +224,7 @@ public class MacDialogScreen extends Screen {
         }
 
         for (var line : font.split(title, innerWidth)) {
-            graphics.drawCenteredString(font, line, panelX + panelWidth / 2, cursorY, MacTheme.TEXT_PRIMARY);
+            MacTheme.centered(graphics, font, line, panelX + panelWidth / 2, cursorY, MacTheme.TEXT_PRIMARY);
             cursorY += font.lineHeight + 2;
         }
         cursorY += 6;

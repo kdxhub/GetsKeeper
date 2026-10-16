@@ -46,9 +46,24 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
 - **弹窗按钮必须关闭界面，Esc 必须等同于安全按钮**。`MacDialogScreen` 用 `choose(choice)` 统一
   "跑动作 + 关闭"，Esc 走 `onClose()` → 非破坏性选项；不要再用会重复语义的 `onDismiss`。
   **不要用 `pushGuiLayer`**：弹窗一律 `setScreen`，否则关闭/ Esc 语义会跟图层栈打架。
-- **凡是"先撤销再询问"的操作，撤销必须把被移动的堆叠还回去**。`UseGuard` 拦截移动时是
-  **整背包快照 + 整背包回滚**：只回滚被监视的那一个槽位，丢的是被移动的物品（交换时还会复制另一件）。
-  三个决定都要有去处：继续→写回槽位+授权；取消→放回背包（满了才掉）；移到虚空→清除。
+- **拾取期间任何东西都不该进背包**：`onItemEntityPickup` 要**先否决再 offer**（失败就下次碰撞重试，
+  vanilla 每 tick 都触发该事件）。只在 offer 成功时才否决，会让冷却期内的物品被 vanilla 静默拾走。
+  同理，模组自己放进背包的东西（交付批次 / 放行会话缓存物品）要 `UseGuard.resync(player)`，否则会被守卫当成"使用"。
+- **拦截的"撤销/复现"以 footprint 为单位**：记录本次操作**改动过的槽位 + 改动后的值 + 菜单光标项（前后各一）**。
+  撤销 = 把那些槽位与光标写回旧值；继续 = 把它们写回新值（= 原操作，交换仍是交换）；取消 = 保留撤销即可
+  （只有"来自背包之外"的栈撤销恢复不了，才需要额外返还）；移到虚空 = 按 item+components 清（计数可能不同）。
+  **光标必须一起快照**：拖拽中的栈在两次点击之间活在光标上，它不是背包槽位，忽略它就会出现
+  "槽里一份、光标一份"的复制。**只把监视槽写回旧值再把新栈写进该槽** 也会复制（撤销已经把栈放回去了）。
+- **能被 vanilla 提前问的事件要在事件里拒绝，别事后撤销**：F 交换 = `LivingSwapItemsEvent.Hands`（可取消），
+  左键破坏 = `PlayerInteractEvent.LeftClickBlock`（START；**创造模式无效**）。事后撤销再复现是复制/Loss 的温床。
+- **`isTrusted` 必须包含信任等级**：`FULLY_TRUSTED`（`passesSilently()`）应当免检 —— 免检物品不该出现进度条，
+  更不该因为"静默验证"把第一次使用丢掉。`resolve` 的静默分支仍要发 verdict，否则客户端进度条永不消失。
+- **界面层盖不住 Screen**：vanilla 是 HUD 先渲染、Screen 后渲染，NeoForge 的 `drawScreen` 还会把注册的 GuiLayer
+  画在 Screen 更早。要让自己的 HUD 出现在界面之上，必须挂 `ScreenEvent.Render.Post`（并在有界面时跳过 HUD 层那一遍）。
+- **`GuiGraphics#drawCenteredString/drawString` 的旧重载总是带阴影**；`shadow=false` 的那版要自己算居中。
+  本模组自定义 UI 一律无阴影，只有直接画在世界之上的进度条标签保留阴影。
+- **（已被上面的 footprint 模型取代）**：曾经是"整背包快照 + 整背包回滚 + 把新栈写回监视槽"，那会复制。
+  现行做法见上面第一条。
 - **快照基线必须在放行后清掉**，否则下一 tick 把刚放回的物品当成新变化，形成无限验证循环。
 - **本模组自己的物品对所有关卡豁免**（验证 / 拾取 / 来源记录三处都要显式排除）。
   映像"丢弃即销毁"的正确做法是**拒绝其 ItemEntity 加入世界**（`EntityJoinLevelEvent`），

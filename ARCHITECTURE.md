@@ -143,7 +143,7 @@ pile of drops).
 an unauthorized stack appears in a guarded slot
         │
         ▼
-UseGuard: put the whole inventory back, and hold the stack aside
+UseGuard: put back every slot the operation touched, and the cursor with it
         │
         ▼
 roll a duration between verification.min_ticks and verification.max_ticks
@@ -155,35 +155,63 @@ VerificationStart payload ──► client draws the experience-bar overlay
         ▼
 resolve the trust level and the recorded source
         │
-        ├── FULLY_TRUSTED ─► re-apply silently, no dialog
+        ├── FULLY_TRUSTED ─► (unreachable in practice: those never start one)
         └── otherwise ─────► VerificationResult payload ──► dialog
                                     │
                     ┌───────────────┼───────────────┐
                     ▼               ▼               ▼
                  CONTINUE         CANCEL          VOID
                     │               │               │
-              record the       put the stack    clear the stack
-              authorization    back in the      from the inventory
-              and re-apply     inventory
+              record the       leave the undo   clear the stack
+              authorization    as it is, hand   from the inventory
+              and write the    back anything    and from the cursor
+              operation back   the undo could
+                               not restore
 ```
 
 Every answer also drops the snapshot baseline, so the next tick compares against the world as it is
 now rather than against the state from before the interception. Without that, a stack that was just
 put back reads as a brand new change and the item is verified again for ever.
 
-The four interception points are:
+#### What "undo" and "re-apply" mean
+
+An interception records the **footprint** of the operation: every slot whose contents changed, what
+they hold afterwards, and the inventory menu's carried item on both sides of it. The cursor is part
+of that footprint because a dragged stack lives on it between the two clicks, and it is not an
+inventory slot - a revert that ignored it left the stack in the slot *and* on the cursor.
+
+* **Undo** writes the touched slots back and puts the cursor back. Only the touched slots, so work
+  the player did elsewhere in the same tick survives.
+* **Continue** writes the footprint forward again, which is the operation itself: a swap comes out as
+  a swap, a drag puts the stack back on the cursor where it was heading from. Writing only the watched
+  slot instead duplicated the stack, because the undo had already restored a copy of it somewhere else.
+* **Cancel** needs to do nothing at all for that case. The one stack the undo cannot restore is one
+  that came from outside the player's own slots - out of a chest, say - and that one is handed back.
+* **Move to the void** clears every stack of that item, matched on the item and its components rather
+  than on an exact count, since the copy left in place may well hold a different amount.
+
+The interception points are:
 
 | Point | What it catches |
 |---|---|
-| guarded slot watcher (`PlayerTickEvent.Post`) | an unauthorized stack appearing in a hand or an equipment slot |
+| guarded slot watcher (`PlayerTickEvent.Post`) | an unauthorized stack appearing in a hand or an equipment slot, and a different hotbar slot being selected |
 | `ItemStackedOnOtherEvent` | a stack dropped onto a crafting grid or a work block input |
 | `UseItemOnBlockEvent` | using an unauthorized item on a block |
 | `LivingEntityUseItemEvent.Start` | using one at all: eating, drawing a bow, and so on |
+| `PlayerInteractEvent.LeftClickBlock` | mining with one |
+| `LivingSwapItemsEvent.Hands` | swapping one into the other hand with F |
+
+The last two were added because they were ways to act with an unverified stack that nothing else
+covered, and because both are asked *before* they happen: the F swap in particular used to be undone
+after the fact, and answering that dialog could duplicate the stack. Now the event is simply refused,
+so there is nothing to undo and nothing to duplicate.
 
 "Guarded slots" are the selected hotbar slot, the offhand, and every slot in
 `Inventory.EQUIPMENT_SLOT_MAPPING`. The rest of the backpack is deliberately not watched: moving an
-item around inside the backpack is not using it. The whole inventory is snapshotted all the same,
-because undoing an intercepted move has to restore both of its ends.
+item around inside the backpack is not using it - although it is snapshotted, because the other end of
+a move into a guarded slot needs to be put back too. Selecting a different hotbar slot counts as the
+stack arriving in the hand even though no slot's contents changed, which is why the watcher tracks the
+selection as well as the slots.
 
 ### 2.3 Authorization and the privacy page
 
@@ -340,16 +368,17 @@ are the rules the design implies but never spells out.
 6. **Operators in single-player.** "Single-player counts as administrator" is implemented as
    "permission level 3". The host of a single-player world already holds that level, so the behaviour
    is identical to a dedicated server without a special case that a LAN guest could trip over.
-7. **What happens to an intercepted stack.** Interception takes a stack out of the inventory, so all
-   three answers have to put it somewhere. "Continue" writes it back into the watched slot and records
-   the authorization; "Move to the void" clears it; "Cancel" hands it back to the inventory, dropping
-   it only when there is no room left. A cancelled verification must never cost the player an item.
-   Undoing an interception restores the **whole** inventory rather than just the watched slot, because
-   a move has two ends - restoring one end of a swap leaves the other end behind, which both loses one
-   stack and duplicates the other.
-   Uses that are not slot moves (right clicking a block, starting to eat) have nothing to put back:
-   they were vetoed, not undone, so the player simply repeats the action. Failures are swallowed and
-   logged at debug level, as specified.
+7. **What happens to an intercepted stack.** Interception puts the operation back and records what it
+   had touched, so all three answers have to be consistent with that undo. "Continue" writes the
+   operation forward again - into the slots it had changed and onto the cursor - and records the
+   authorization; "Move to the void" clears the stack; "Cancel" leaves the undo standing and hands
+   back only the stack the undo could not restore, which is one that came from outside the player's
+   own slots. A cancelled verification must never cost the player an item, and a confirmed one must
+   never hand out a second copy: both of those came from restoring one end of a move while writing the
+   other end back by hand.
+   Uses that are not slot moves (right clicking a block, starting to eat, swinging at a block) have
+   nothing to put back: they were vetoed, not undone, so the player simply repeats the action.
+   Failures are swallowed and logged at debug level, as specified.
 8. **A prompt is answered, never just dismissed.** Every button closes its dialog once it has acted,
    and Escape takes the same action as the safe button - the non-destructive one, "Cancel" or "Done"
    or "OK". Escape is therefore not a way to close a dialog without answering it, which would leave
@@ -364,6 +393,31 @@ are the rules the design implies but never spells out.
    lost: it is filtered out of the death drops and copied to the respawned player. It is also exempt
    from every gate in the mod - not verified, not intercepted on pickup, not written into the source
    records - because verifying the image would mean verifying the tool that does the verifying.
+10. **A fully trusted namespace is not verified at all.** It used to get what the config called a
+    "silent verification": a progress bar, a wait, and a dropped first use, every time. Trust levels
+    are the operator saying an item needs no watching, so `isTrusted` returns true for them and no
+    hook starts anything. The one place a silent verdict can still happen is a config reload landing
+    between an interception and its resolution; that path now sends the verdict like any other, which
+    is what tells the client the wait is over, and the client draws nothing for it.
+11. **Left clicking is starting to mine.** Mining does not go through the use-on-block or the
+    use-item path, so an unverified pickaxe could break a block. The swing is now vetoed at its
+    start, which keeps the block intact; the repeat events vanilla sends while the button is held all
+    land on the same pending verification. Creative mode is the exception, and it is vanilla's:
+    breaking a block there does not consult this event, so nothing can be refused.
+12. **Blocked items are not offered a grant.** The privacy page's session list is a list of refusals
+    with a "use anyway" button, and a blocked item has nothing to grant - the dialog only offers the
+    void. Listing it advertised a button that could not do anything, so blocked items are no longer
+    marked, and an entry disappears the moment a grant goes through.
+13. **The verification bar is drawn twice, in two places.** Once as a HUD layer for when nothing is
+    open, and once from `ScreenEvent.Render.Post` for when something is. Vanilla renders the HUD
+    *before* the screen, and NeoForge's screen hook renders the registered layers even earlier than
+    that, so the layer alone put the bar behind the inventory and every other screen.
+14. **Text in this mod's own UI has no drop shadow.** Every panel is drawn on an opaque card, where
+    vanilla's shadow only smears the glyphs. The one exception is the verification bar's label, which
+    sits over the world rather than over a card and asks for a shadow explicitly.
+15. **The pickup screen has a Close button.** Escape does the same thing and the server holds the
+    items back until the screen is answered either way, but a screen that can only be left with a key
+    the player has to guess reads as a screen that is stuck.
 
 ---
 

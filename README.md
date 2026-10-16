@@ -171,10 +171,22 @@ not resolve the way vanilla does.
 * **The image is never verified, offered as a pickup, or listed as an item source.** It is the tool the
   mod runs on, so the mod stays out of its way.
 * **Dialogs are answered, not dismissed.** Every button closes the dialog it is on, and Escape does the
-  same as the safe button ("Cancel", "Done", "OK"). Cancelling a verification hands the item back to
-  your inventory - it never costs you the stack.
+  same as the safe button ("Cancel", "Done", "OK"). Neither answer costs you a stack or hands you a
+  second copy: cancelling puts the operation back exactly as it was, and continuing runs it exactly
+  once. That holds for a move, a shift-click and an F swap alike.
+* **A fully trusted namespace is never verified.** Its items are usable straight away - no progress
+  bar, no dialog, no dropped first use. The lists are in the config file, and `minecraft` is on the
+  fully trusted list out of the box.
+* **Everything that acts with an item is covered:** moving it into a hand or a piece of equipment,
+  selecting its hotbar slot, dropping it into a crafting grid or a work block input, using it on a
+  block, eating or drawing it, mining with it, and swapping it into the other hand with F.
+* **The verification bar is drawn over whatever is open**, including the inventory and other screens.
 * **Throwing an item away does not offer it back.** A stack still inside vanilla's own pickup delay -
-  the moment right after you throw it - is skipped by the pickup scan.
+  the moment right after you throw it - is skipped by the pickup scan. While a pickup screen is open,
+  nothing at all slips into your inventory behind it: the items are held in the world until the screen
+  is answered, and the screen has a Close button as well as Escape.
+* **The "use anyway" list only offers items that can be granted.** A blocked item cannot be granted at
+  all, so it is not listed; and an entry disappears as soon as its grant goes through.
 * **The "refused this session" list at the bottom of the privacy page has no heading** and is not drawn
   at all until something has actually been refused.
 

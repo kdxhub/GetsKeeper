@@ -21,9 +21,9 @@ import top.kdxiaoyi.mod.getskeeper.net.GKPayloads;
  * <p>Declared with {@code dist = Dist.CLIENT}, so FML never even loads this class on a dedicated
  * server and none of the screen code can leak into the server process.
  *
- * <p>Three things happen here: the client payload handlers are attached, the verification overlay is
- * registered as a HUD layer just above the hotbar, and the privacy page gets its entry point on the
- * pause menu.
+ * <p>Four things happen here: the client payload handlers are attached, the verification overlay is
+ * registered as a HUD layer just above the hotbar and also drawn on top of any open screen, and the
+ * privacy page gets its entry point on the pause menu.
  */
 @Mod(value = GetsKeeper.MOD_ID, dist = Dist.CLIENT)
 public final class GetsKeeperClient {
@@ -31,6 +31,7 @@ public final class GetsKeeperClient {
         modBus.addListener(GetsKeeperClient::onRegisterClientPayloads);
         modBus.addListener(GetsKeeperClient::onRegisterGuiLayers);
         NeoForge.EVENT_BUS.addListener(GetsKeeperClient::onScreenInit);
+        NeoForge.EVENT_BUS.addListener(GetsKeeperClient::onScreenRender);
     }
 
     private static void onRegisterClientPayloads(RegisterClientPayloadHandlersEvent event) {
@@ -46,6 +47,16 @@ public final class GetsKeeperClient {
         // Above the hotbar so the bar lands where the experience bar would be, and above everything
         // else so a dialog cannot cover it up.
         event.registerAboveAll(GetsKeeper.id("verification_overlay"), VerificationOverlay.INSTANCE);
+    }
+
+    /**
+     * Draws the verification bar over an open screen.
+     *
+     * <p>The HUD layer is not enough on its own: vanilla renders the HUD before the screen, so the bar
+     * ended up behind the inventory and every other screen. This runs after the screen has drawn.
+     */
+    private static void onScreenRender(ScreenEvent.Render.Post event) {
+        VerificationOverlay.INSTANCE.renderOverScreen(event.getGuiGraphics());
     }
 
     /** Adds the "Privacy & Security" entry to the pause menu. */
