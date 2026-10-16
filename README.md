@@ -174,9 +174,10 @@ not resolve the way vanilla does.
   same as the safe button ("Cancel", "Done", "OK"). Neither answer costs you a stack or hands you a
   second copy: cancelling puts the operation back exactly as it was, and continuing runs it exactly
   once. That holds for a move, a shift-click and an F swap alike.
-* **A fully trusted namespace is verified without a dialog.** The progress bar plays, then the
-  operation goes through with nothing to answer. The lists are in the config file, and `minecraft` is
-  on the fully trusted list out of the box.
+* **A fully trusted namespace is watched, never held back.** Its items still get a pass - the progress
+  bar plays and comes down on its own - but nothing about the action is stopped: no dialog to answer,
+  no veto, and no need to repeat what you just did. The lists are in the config file, and `minecraft`
+  is on the fully trusted list out of the box.
 * **Everything that acts with an item is covered:** moving it into a hand or a piece of equipment,
   selecting its hotbar slot, dropping it into a crafting grid or a work block input, using it on a
   block, eating or drawing it, mining with it, right clicking with it - which is how armour is put

@@ -62,7 +62,19 @@ import top.kdxiaoyi.mod.getskeeper.trust.TrustService;
  * </ol>
  *
  * <p>A verification is a randomized wait, drawn as the experience bar overlay, followed by a dialog
- * unless the item is fully trusted or already authorized. Authorized items never reach any of this.
+ * unless the item is fully trusted or already authorized.
+ *
+ * <p>The trust level decides which of the two kinds of pass an operation gets, and the hooks ask
+ * {@link #needsAnswer} rather than {@link #isTrusted} to tell them apart:
+ *
+ * <ul>
+ *   <li><b>An intercepted pass.</b> The operation is vetoed or undone first, the bar plays, and the
+ *       player answers a dialog. Only then is the operation re-applied - that is what "Continue" does.
+ *       A blocked item cannot be continued at all.</li>
+ *   <li><b>An announced pass.</b> A fully trusted item is not vetoed and nothing is undone: the
+ *       operation happens, and the bar is the only trace of it. There is no question to answer, so
+ *       stopping the operation would cost the player the action and leave nothing to re-apply.</li>
+ * </ul>
  */
 public final class UseGuard {
     /**
@@ -88,7 +100,19 @@ public final class UseGuard {
     private record Pending(ItemStack stack, GuardedSlot slot, Map<Integer, ItemStack> after,
             ItemStack carriedBefore, ItemStack carriedAfter, long resolveAt) {}
 
+    /**
+     * A pass that has nothing to decide, because the item is fully trusted.
+     *
+     * <p>It is not an interception: nothing was vetoed and nothing was undone, so there is nothing to
+     * resolve - only a bar to finish. Keeping it apart from {@link #PENDING} is what lets the watcher
+     * stay awake while it runs: an intercepted operation blocks the next one, an allowed one must not.
+     *
+     * @param resolveAt when the bar comes down
+     */
+    private record Announced(ItemStack stack, long resolveAt) {}
+
     private static final Map<UUID, Pending> PENDING = new HashMap<>();
+    private static final Map<UUID, Announced> ANNOUNCED = new HashMap<>();
     private static final Map<UUID, List<ItemStack>> SNAPSHOTS = new HashMap<>();
 
     /** The hotbar slot each player is holding, so that switching it can be told apart from a move. */
@@ -129,14 +153,30 @@ public final class UseGuard {
      * <p>Two things never start one: the mod's own items, because verifying the image would mean
      * verifying the tool that vouches for a batch, and anything the player has authorized.
      *
-     * <p>A fully trusted namespace is deliberately *not* on this list. "Fully trusted" means the
-     * operator wants it watched but never questioned, so it still runs a pass - the progress bar is
-     * the whole of it, followed by a verdict the client shows nothing for. Skipping the pass
-     * altogether took the bar away as well, which is what the trust list is meant to control: only
-     * moving an entry to the other lists takes the bar away.
+     * <p>A fully trusted namespace is not on this list either - it gets its pass, and therefore its
+     * progress bar. It is simply not *held back* by it, which is what {@link #needsAnswer} is for.
      */
     public static boolean isTrusted(Player player, ItemStack stack) {
         return MountedContainerImageItem.isImage(stack) || AuthorizationService.isUsable(player, stack);
+    }
+
+    /**
+     * {@return {@code true} when acting with this stack has to be stopped and asked about}
+     *
+     * <p>This, rather than {@link #isTrusted}, is what every hook vetoes on. The difference between the
+     * two is the fully trusted namespace: it is watched, so it still gets a pass and a bar, but there
+     * is no question to put to the player, so the operation is allowed to happen.
+     *
+     * <p>Vetoing it instead is what made a fully trusted item unusable. A vetoed use has nothing to
+     * undo, so resolving it silently had nothing to re-apply either - the item was stopped, a bar
+     * played, and the action was quietly dropped, for as long as the player kept trying.
+     */
+    private static boolean needsAnswer(Player player, ItemStack stack) {
+        if (isTrusted(player, stack)) {
+            return false;
+        }
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return itemId == null || !TrustService.resolve(itemId).passesSilently();
     }
 
     // --- interception ------------------------------------------------------------------------
@@ -149,7 +189,7 @@ public final class UseGuard {
             return;
         }
         ItemStack moving = event.getCarriedItem();
-        if (moving.isEmpty() || isTrusted(player, moving)) {
+        if (moving.isEmpty() || !needsAnswer(player, moving)) {
             return;
         }
         event.setCanceled(true);
@@ -167,7 +207,7 @@ public final class UseGuard {
             return;
         }
         ItemStack stack = event.getItemStack();
-        if (stack.isEmpty() || isTrusted(player, stack)) {
+        if (stack.isEmpty() || !needsAnswer(player, stack)) {
             return;
         }
         // The before-block phase is the item's own pre-emptive action, and vanilla hands the block its
@@ -180,28 +220,23 @@ public final class UseGuard {
     }
 
     /**
-     * Left clicking a block is using the item too, and it was the one way left to act with an
-     * unverified stack: mining does not go through either the use-on-block or the use-item path.
-     *
-     * <p>Only the start of the swing is intercepted. Cancelling it keeps the block from being mined,
-     * and the repeated events vanilla fires while the button is held all fall on the same pending
-     * verification. Creative mode is the one exception: vanilla breaks the block there without
-     * consulting this event, which is noted in the architecture document.
-     */
-    /**
      * Right clicking with an item: equipping it, drinking it, placing it at nothing.
      *
      * <p>This is the one hook that covers putting armour on. Equipping moves a stack into an
      * equipment slot without going through use-on-block or use-item at all, so nothing else asked -
-     * and by the time the slot watcher saw it, the item was already worn. Vanilla asks this event
-     * first, so the answer is simply "no" and there is nothing to undo.
+     * and by the time the slot watcher saw it, the item was already worn - which made it the way an
+     * unverified stack got worn without being questioned. Vanilla asks this event first, so an item
+     * that needs an answer is simply refused, and there is nothing to undo.
      */
     private static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         if (!GKConfig.useGuardEnabled() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
         ItemStack stack = event.getItemStack();
-        if (stack.isEmpty() || isTrusted(player, stack)) {
+        if (stack.isEmpty() || !needsAnswer(player, stack)) {
+            // Fully trusted, authorized, or one of the mod's own items: the operation happens, and a
+            // fully trusted drop of it is announced by the watcher when the stack lands in a hand or
+            // an equipment slot.
             return;
         }
         // PASS rather than FAIL: the item is refused, but the client should still be free to try the
@@ -211,6 +246,15 @@ public final class UseGuard {
         begin(player, stack, new GuardedSlot(-1));
     }
 
+    /**
+     * Left clicking a block is using the item too, and it was the one way left to act with an
+     * unverified stack: mining does not go through either the use-on-block or the use-item path.
+     *
+     * <p>Only the start of the swing is intercepted. Cancelling it keeps the block from being mined,
+     * and the repeated events vanilla fires while the button is held all fall on the same pending
+     * verification. Creative mode is the one exception: vanilla breaks the block there without
+     * consulting this event, which is noted in the architecture document.
+     */
     private static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         if (!GKConfig.useGuardEnabled()
                 || event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.START
@@ -218,7 +262,7 @@ public final class UseGuard {
             return;
         }
         ItemStack stack = event.getItemStack();
-        if (stack.isEmpty() || isTrusted(player, stack)) {
+        if (stack.isEmpty() || !needsAnswer(player, stack)) {
             return;
         }
         event.setCanceled(true);
@@ -241,8 +285,8 @@ public final class UseGuard {
         ItemStack incoming = event.getItemSwappedToMainHand();
         ItemStack outgoing = event.getItemSwappedToOffHand();
         // Either hand being unverified is enough: one of them is about to be the item in use.
-        ItemStack subject = !isTrusted(player, incoming) ? incoming
-                : (!isTrusted(player, outgoing) ? outgoing : null);
+        ItemStack subject = needsAnswer(player, incoming) ? incoming
+                : (needsAnswer(player, outgoing) ? outgoing : null);
         if (subject == null || subject.isEmpty()) {
             return;
         }
@@ -261,7 +305,7 @@ public final class UseGuard {
             return;
         }
         ItemStack stack = event.getItem();
-        if (stack.isEmpty() || isTrusted(player, stack)) {
+        if (stack.isEmpty() || !needsAnswer(player, stack)) {
             return;
         }
         event.setCanceled(true);
@@ -274,6 +318,7 @@ public final class UseGuard {
         }
         UUID id = player.getUUID();
         PENDING.remove(id);
+        ANNOUNCED.remove(id);
         SNAPSHOTS.remove(id);
         SELECTED.remove(id);
         CARRIED.remove(id);
@@ -301,6 +346,14 @@ public final class UseGuard {
             return;
         }
 
+        Announced announced = ANNOUNCED.get(id);
+        if (announced != null && now >= announced.resolveAt()) {
+            ANNOUNCED.remove(id);
+            // FULLY_TRUSTED whatever the config says now: the operation was allowed when the pass
+            // started, and this describes that decision rather than a config reloaded a second later.
+            sendVerdict(player, announced.stack(), TrustLevel.FULLY_TRUSTED);
+        }
+
         if (!GKConfig.useGuardEnabled()) {
             // Drop the baselines instead of letting them go stale: switching the guard back on must not
             // compare the inventory against the world as it was when it was switched off.
@@ -321,6 +374,7 @@ public final class UseGuard {
         // ends that both changed, so undoing and re-applying both work on the whole footprint.
         Map<Integer, ItemStack> after = new LinkedHashMap<>();
         int watched = -1;
+        int allowed = -1;
         Set<Integer> guarded = guardedIndices(player);
         for (int index = 0; index < current.size(); index++) {
             ItemStack before = previous.get(index);
@@ -329,9 +383,16 @@ public final class UseGuard {
                 continue;
             }
             after.put(index, arriving.copy());
-            if (watched < 0 && guarded.contains(index) && !arriving.isEmpty()
-                    && !isTrusted(player, arriving)) {
-                watched = index;
+            if (!guarded.contains(index) || arriving.isEmpty() || isTrusted(player, arriving)) {
+                continue;
+            }
+            if (needsAnswer(player, arriving)) {
+                if (watched < 0) {
+                    watched = index;
+                }
+            } else if (allowed < 0) {
+                // Fully trusted: it stays exactly where it landed, and only the pass is left to show.
+                allowed = index;
             }
         }
 
@@ -353,10 +414,20 @@ public final class UseGuard {
         if (previousSelected != null && previousSelected != selected) {
             ItemStack arriving = current.get(selected);
             if (!arriving.isEmpty() && !isTrusted(player, arriving)) {
-                // Nothing is undone here: a switch leaves no trace in the inventory, and putting the
-                // inventory back would only undo work the player did elsewhere in the same tick.
-                begin(player, arriving.copy(), new GuardedSlot(selected));
+                if (needsAnswer(player, arriving)) {
+                    // Nothing is undone here: a switch leaves no trace in the inventory, and putting the
+                    // inventory back would only undo work the player did elsewhere in the same tick.
+                    begin(player, arriving.copy(), new GuardedSlot(selected));
+                    return;
+                }
+                if (allowed < 0) {
+                    allowed = selected;
+                }
             }
+        }
+
+        if (allowed >= 0) {
+            announce(player, current.get(allowed));
         }
     }
 
@@ -447,10 +518,44 @@ public final class UseGuard {
         if (PENDING.containsKey(id)) {
             return;
         }
+        // There is only one bar: an interception takes it over from an announcement, whose verdict
+        // would otherwise arrive later and pull the bar out from under the dialog.
+        ANNOUNCED.remove(id);
         int ticks = GKConfig.rollVerificationTicks(player.getRandom());
         PENDING.put(id, new Pending(stack.copy(), slot, after, carriedBefore, carriedAfter,
                 player.level().getGameTime() + ticks));
         GKNetwork.startVerification(player, stack, ticks);
+    }
+
+    /**
+     * Announces a pass that has nothing to decide.
+     *
+     * <p>A fully trusted item is never held back and never raises a dialog, but its pass is the only
+     * visible sign that the item was looked at - so the bar plays. It is an announcement rather than a
+     * gate: the operation it accompanies has already been allowed, and there is nothing left to undo
+     * or re-apply if it were not.
+     *
+     * <p>Only one announcement runs at a time, and the same item is not announced twice in a row:
+     * walking the hotbar past a stack repeatedly would otherwise restart the bar each time and turn it
+     * into a flicker.
+     */
+    private static void announce(ServerPlayer player, ItemStack stack) {
+        Announced running = ANNOUNCED.get(player.getUUID());
+        if (running != null && ItemStack.isSameItemSameComponents(running.stack(), stack)) {
+            return;
+        }
+        int ticks = GKConfig.rollVerificationTicks(player.getRandom());
+        ANNOUNCED.put(player.getUUID(), new Announced(stack.copy(), player.level().getGameTime() + ticks));
+        GKNetwork.startVerification(player, stack, ticks);
+    }
+
+    /** Sends the verdict for a stack, together with where it was recorded to have come from. */
+    private static void sendVerdict(ServerPlayer player, ItemStack stack, TrustLevel trust) {
+        ItemSource source = player.getData(GKAttachments.SOURCES.get())
+                .latestFor(SourceRecorder.itemId(stack));
+        GKNetwork.sendVerificationResult(player, stack, trust, source,
+                source == null ? "" : source.acquiredBy(),
+                source == null ? 0L : source.acquiredAt());
     }
 
     /** Starts a verification for an operation that changed nothing: a use that was vetoed. */
@@ -467,19 +572,16 @@ public final class UseGuard {
         TrustLevel trust = registryId == null ? TrustLevel.UNTRUSTED : TrustService.resolve(registryId);
 
         if (trust.passesSilently()) {
-            // Fully trusted: no dialog. The verdict still has to be sent, because that is what tells
-            // the client the wait is over - without it the progress bar stayed on screen for ever.
-            // The client draws nothing for a silent verdict.
+            // Reachable only when a config reload trusts the item between the interception and the
+            // wait ending: an item that is trusted to begin with is never intercepted (see
+            // needsAnswer). The operation was undone, so it goes through by writing its footprint back.
             PENDING.remove(id);
             apply(player, pending.after(), pending.carriedAfter());
             // The snapshot still describes the state from before the interception, so it has to go:
             // leaving it behind made the next tick read the stack this method just put back as a
             // brand new change, and the item was verified over and over for ever.
             SNAPSHOTS.remove(id);
-            ItemSource origin = player.getData(GKAttachments.SOURCES.get()).latestFor(itemId);
-            GKNetwork.sendVerificationResult(player, stack, trust, origin,
-                    origin == null ? "" : origin.acquiredBy(),
-                    origin == null ? 0L : origin.acquiredAt());
+            sendVerdict(player, stack, trust);
             GetsKeeper.LOGGER.debug("{} passed verification without a dialog", itemId);
             return;
         }
@@ -491,10 +593,7 @@ public final class UseGuard {
             GKNetwork.sendSessionBlocked(player);
         }
 
-        ItemSource source = player.getData(GKAttachments.SOURCES.get()).latestFor(itemId);
-        GKNetwork.sendVerificationResult(player, stack, trust, source,
-                source == null ? "" : source.acquiredBy(),
-                source == null ? 0L : source.acquiredAt());
+        sendVerdict(player, stack, trust);
         // Stay pending until the player answers; the resolver below is what ends it.
         PENDING.put(id, new Pending(stack, pending.slot(), pending.after(), pending.carriedBefore(),
                 pending.carriedAfter(), Long.MAX_VALUE));

@@ -140,33 +140,38 @@ pile of drops).
 ### 2.2 Verification
 
 ```
-an unauthorized stack appears in a guarded slot
+an operation with an item happens (a move, a selection, a use)
         │
         ▼
-UseGuard: put back every slot the operation touched, and the cursor with it
+resolve the trust level ──► needsAnswer?
         │
-        ▼
-roll a duration between verification.min_ticks and verification.max_ticks
+        ├── no ──► nothing is stopped. FULLY_TRUSTED still gets its pass,
+        │          announced rather than asked:
+        │             VerificationStart payload ──► the bar plays
+        │             (the server waits the same number of ticks)
+        │             VerificationResult payload ──► the bar comes down, no dialog
         │
-        ▼
-VerificationStart payload ──► client draws the experience-bar overlay
-        │
-   (server waits the same number of ticks)
-        ▼
-resolve the trust level and the recorded source
-        │
-        ├── FULLY_TRUSTED ─► (unreachable in practice: those never start one)
-        └── otherwise ─────► VerificationResult payload ──► dialog
-                                    │
-                    ┌───────────────┼───────────────┐
-                    ▼               ▼               ▼
-                 CONTINUE         CANCEL          VOID
-                    │               │               │
-              record the       leave the undo   clear the stack
-              authorization    as it is, hand   from the inventory
-              and write the    back anything    and from the cursor
-              operation back   the undo could
-                               not restore
+        └── yes ─► put back every slot the operation touched, and the cursor with it
+                   │
+                   ▼
+                   roll a duration between verification.min_ticks and verification.max_ticks
+                   │
+                   ▼
+                   VerificationStart payload ──► the bar plays
+                   │
+                   (server waits the same number of ticks)
+                   ▼
+                   VerificationResult payload ──► dialog
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+           CONTINUE         CANCEL          VOID
+              │               │               │
+        record the       leave the undo   clear the stack
+        authorization    as it is, hand   from the inventory
+        and write the    back anything    and from the cursor
+        operation back   the undo could
+                         not restore
 ```
 
 Every answer also drops the snapshot baseline, so the next tick compares against the world as it is
@@ -202,8 +207,10 @@ The interception points are:
 | `LivingSwapItemsEvent.Hands` | swapping one into the other hand with F |
 | `PlayerInteractEvent.RightClickItem` | right clicking with one, which is what equipping armour is |
 
-The last three were added because they were ways to act with an unverified stack that nothing else
-covered, and because all of them are asked *before* they happen: the F swap in particular used to be
+Every hook vetoes on `needsAnswer`, not on `isTrusted`: the two differ by the fully trusted
+namespace, which is announced rather than stopped (see deviation 10). The last three were added
+because they were ways to act with an unverified stack that nothing else covered, and because all of
+them are asked *before* they happen: the F swap in particular used to be
 undone after the fact, and answering that dialog could duplicate the stack. Now the event is simply
 refused, so there is nothing to undo and nothing to duplicate. Equipping armour goes through the
 right-click event alone - it moves a stack into an equipment slot without ever touching the
@@ -299,7 +306,9 @@ of misreading each other. It is currently `2` — `PasswordPrompt` gained its `m
 
 `config/getskeeper-common.toml`, written from `GKConfig` with comments on every entry.
 
-* `trust_lists.fully_trusted` — default `["minecraft"]`, and the operator may remove it.
+* `trust_lists.fully_trusted` — default `["minecraft"]`, and the operator may remove it. Items here
+  are never stopped: they get a pass and a progress bar, then the operation goes through with nothing
+  to answer. Removing an entry sends it to `trusted` if it is there, and to `UNTRUSTED` otherwise.
 * `trust_lists.trusted` — default empty.
 * `trust_lists.blocked` — default empty.
 * `pickup.enabled`, `pickup.scan_radius`, `pickup.cooldown_ticks`, `pickup.include_arrows`.
@@ -404,12 +413,21 @@ are the rules the design implies but never spells out.
    lost: it is filtered out of the death drops and copied to the respawned player. It is also exempt
    from every gate in the mod - not verified, not intercepted on pickup, not written into the source
    records - because verifying the image would mean verifying the tool that does the verifying.
-10. **A fully trusted namespace is verified, silently.** The pass runs - the progress bar plays - and
-    the verdict that ends it is sent, which is what makes the bar disappear; the client draws nothing
-    else for `FULLY_TRUSTED`, so there is no dialog. Skipping the pass altogether was tried and was
-    wrong: the trust lists are how the operator chooses between "watched but never questioned" and
-    "watched and questioned", so removing the bar took away the only feedback a fully trusted item
-    had. Only the mod's own items and authorized ones skip a pass entirely.
+10. **A fully trusted namespace gets a pass that decides nothing.** The bar plays and the verdict that
+    ends it is sent - which is what makes the bar come down - but nothing about the operation is
+    stopped, and nothing is undone. Two earlier shapes of this were wrong in opposite directions:
+
+    * *Intercepting it like any other item* meant vetoing the use, playing the bar, and then having
+      nothing to re-apply, because a vetoed use is not a slot move: the action was dropped and the
+      item could never be used at all. Only a slot move has a footprint to write back.
+    * *Skipping the pass* took the bar away with it, and the bar is the only thing that shows the item
+      was looked at.
+
+    So the pass runs and the operation happens: the item is watched, not held back. A use of it is
+    never vetoed, and when a fully trusted stack lands in a hand or an equipment slot the watcher
+    announces the pass instead of undoing the arrival. Only the mod's own items and the player's own
+    authorizations skip a pass entirely - there is nothing to show for those, because nothing about
+    them is in question.
 11. **Left clicking is starting to mine.** Mining does not go through the use-on-block or the
     use-item path, so an unverified pickaxe could break a block. The swing is now vetoed at its
     start, which keeps the block intact; the repeat events vanilla sends while the button is held all

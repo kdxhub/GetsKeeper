@@ -56,9 +56,16 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
   "槽里一份、光标一份"的复制。**只把监视槽写回旧值再把新栈写进该槽** 也会复制（撤销已经把栈放回去了）。
 - **能被 vanilla 提前问的事件要在事件里拒绝，别事后撤销**：F 交换 = `LivingSwapItemsEvent.Hands`（可取消），
   左键破坏 = `PlayerInteractEvent.LeftClickBlock`（START；**创造模式无效**）。事后撤销再复现是复制/Loss 的温床。
-- **`isTrusted` 只放行"本模组物品"与"玩家已授权"两件事**：`FULLY_TRUSTED` **仍要走验证**（进度条 + 静默通过、
-  无对话）。把 pass 整个跳过会让免检物品连进度条都没有 —— 信任列表本身就是"被看着但不被质问"这一档，
-  进度条是它唯一的反馈。静默分支必须**发 verdict**，否则客户端进度条永不消失（这条不变）。
+- **拦截与否看 `needsAnswer`，不看 `isTrusted`**（`UseGuard` 里两个不同的谓词）：
+  - `isTrusted` = 本模组物品 / 玩家已授权 → **连 pass 都不起**（没什么可看的）。
+  - `needsAnswer` = 需要问玩家的档位（`TRUSTED`/`UNTRUSTED`/`BLOCKED`）→ 否决/撤销 + 进度条 + 弹窗。
+  - `FULLY_TRUSTED` = 两者都不占：**播报式 pass** —— 进度条照播、结束发 verdict（否则进度条永不消失），
+    但**不否决、不撤销**，操作照常发生。
+  **为什么必须这样**：被否决的"使用"（右键/左键/吃东西/放进工作台）**没有 footprint 可复现**
+  （`reapply` 只处理槽位移动），所以一旦否决就永远用不了；而把 `FULLY_TRUSTED` 也算免检又会连进度条一起丢掉。
+  两个方向都试过、都被用户报过 bug，现在这条是收敛解。
+- **"接手/广播"互斥**：一次只能有一条进度条，`begin()` 要 `ANNOUNCED.remove(id)`（拦截接管播报），
+  播报状态单独放 `ANNOUNCED` map 而不是塞进 `PENDING` —— 否则播报期间守卫会整个停摆（`pending != null` 直接 return）。
 - **右键"使用物品"必须单独拦**：`PlayerInteractEvent.RightClickItem`（可取消）是 vanilla 在
   `ServerPlayerGameMode#useItem` 开头就问的事件，**装备盔甲走的就是它**（`Equippable#swapWithEquipmentSlot`）。
   装备不经过 use-on-block / use-item，等 tick 守卫发现时物品已经穿上，事后撤销还要碰 footprint（易复制）。

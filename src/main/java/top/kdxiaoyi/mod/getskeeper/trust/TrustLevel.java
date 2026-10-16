@@ -6,7 +6,10 @@ package top.kdxiaoyi.mod.getskeeper.trust;
  * <p>Anything that is on none of the three configured lists is {@link #UNTRUSTED}.
  */
 public enum TrustLevel {
-    /** Verifies silently: the pass runs with no dialog to answer, and the operation goes through. */
+    /**
+     * Watched but never questioned: the pass runs, and the operation goes through with it. The
+     * progress bar is the whole of it - nothing is vetoed, so nothing has to be repeated.
+     */
     FULLY_TRUSTED,
     /** Verifies, then asks the player to confirm. */
     TRUSTED,
