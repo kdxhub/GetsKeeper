@@ -4,6 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import top.kdxiaoyi.mod.getskeeper.config.GKConfig;
 import top.kdxiaoyi.mod.getskeeper.GetsKeeper;
 import top.kdxiaoyi.mod.getskeeper.pickup.PickupInterceptor;
 import top.kdxiaoyi.mod.getskeeper.security.AuthorizationService;
@@ -122,7 +123,7 @@ public final class GKServerHandler {
             // "Use anyway" never grants anything by itself: it only opens the password prompt.
             SessionGuards.mark(player.getUUID(), payload.itemId());
             GKNetwork.sendPasswordPrompt(player, PasswordPurpose.GRANT_BLOCKED_USE, payload.itemId(),
-                    player.getScoreboardName(), false);
+                    player.getScoreboardName(), false, GKConfig.passwordMinLength());
         });
     }
 }

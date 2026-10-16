@@ -31,7 +31,7 @@ import top.kdxiaoyi.mod.getskeeper.trust.TrustLevel;
  */
 public final class GKNetwork {
     /** Protocol version. Bump this whenever a payload changes shape. */
-    private static final String VERSION = "1";
+    private static final String VERSION = "2";
 
     private GKNetwork() {}
 
@@ -99,10 +99,11 @@ public final class GKNetwork {
                 acquiredBy == null ? "" : acquiredBy));
     }
 
-    /** Asks the client for a password. */
+    /** Asks the client for a password, telling it the length the server will accept. */
     public static void sendPasswordPrompt(ServerPlayer player, PasswordPurpose purpose, String itemId,
-            String suggestedUsername, boolean mandatory) {
-        send(player, new GKPayloads.PasswordPrompt(purpose.ordinal(), itemId, suggestedUsername, mandatory));
+            String suggestedUsername, boolean mandatory, int minLength) {
+        send(player, new GKPayloads.PasswordPrompt(purpose.ordinal(), itemId, suggestedUsername, mandatory,
+                minLength));
     }
 
     /** Reports the outcome of a password attempt. */

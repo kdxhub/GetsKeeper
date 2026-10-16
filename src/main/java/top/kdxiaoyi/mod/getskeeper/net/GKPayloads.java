@@ -129,9 +129,13 @@ public final class GKPayloads {
      * @param itemId            the item the password is about, may be empty
      * @param suggestedUsername prefilled user name; operators get their own name, others get nothing
      * @param mandatory         true for the forced first-time setup, which cannot be dismissed
+     * @param minLength         the minimum length the server accepts, so that a prompt which is
+     *                          asking the player to <em>choose</em> a password can state the rule.
+     *                          Without it a too-short password comes back as a bare rejection and
+     *                          looks like the password was wrong
      */
-    public record PasswordPrompt(int purpose, String itemId, String suggestedUsername, boolean mandatory)
-            implements CustomPacketPayload {
+    public record PasswordPrompt(int purpose, String itemId, String suggestedUsername, boolean mandatory,
+            int minLength) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<PasswordPrompt> TYPE = GKPayloads.type("password_prompt");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PasswordPrompt> STREAM_CODEC = StreamCodec.of(
@@ -140,12 +144,14 @@ public final class GKPayloads {
                     ByteBufCodecs.STRING_UTF8.encode(buf, payload.itemId());
                     ByteBufCodecs.STRING_UTF8.encode(buf, payload.suggestedUsername());
                     buf.writeBoolean(payload.mandatory());
+                    buf.writeVarInt(payload.minLength());
                 },
                 buf -> new PasswordPrompt(
                         buf.readVarInt(),
                         ByteBufCodecs.STRING_UTF8.decode(buf),
                         ByteBufCodecs.STRING_UTF8.decode(buf),
-                        buf.readBoolean()));
+                        buf.readBoolean(),
+                        buf.readVarInt()));
 
         @Override
         public CustomPacketPayload.Type<PasswordPrompt> type() {

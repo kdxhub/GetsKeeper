@@ -20,6 +20,10 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
 - **`./gradlew runServer` 也已实测启动成功**（Mod 加载、配置生成、命令注册均正常）。改动注册/启动路径后
   请务必跑一次 `runServer` —— 编译通过不代表能跑（见下）。
   下发命令要用 RCON，Gradle **不转发 stdin**。
+- **`runClient` 在本机（这个 shell）跑不起来**：LWJGL 无法加载本地库、`DisplayWindow` 拿不到图形会话。
+  客户端代码（拾取界面 / 弹窗 / 隐私页 / 叠加层）只能靠编译器与审查，别在这上面反复试。
+- **协议版本**：`GKNetwork.VERSION` 目前是 `2`。任何 `CustomPacketPayload` 字段变化都要同步升版，
+  否则新旧构建会互相误读。
 
 ## 网络受限环境的构建（本机必需，已固化进仓库）
 `maven.neoforged.net` 在本机被 DNS 污染（多个 DoH 都返回被注入的 Facebook 段 IP，443 全部超时），
@@ -39,6 +43,9 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
 - 不弹无关提示：授权、限制、拦截、密码尝试、移到虚空等只写日志（`GetsKeeper.LOGGER`）。
 - 玩家数据用 Data Attachment（`copyOnDeath`）；存档级密码用 `SavedData`；名单用 ModConfig。
 - 名单冲突（同一 entry 出现在两个名单）必须抛异常崩溃，不做静默取舍。
+- **凡是有配置项的约束，界面必须表达出来**。`security.min_length` 默认 6 却没在界面提示，导致
+  "太短"被当成"密码错误"，用户会认为功能坏了。做法：策略由服务端随载荷下发，客户端显示 + 提前校验，
+  服务端记录每条拒绝原因。
 - 箭矢静止判定不能调 `isInGround()`（protected）：用
   `isNoPhysics() || onGround() || getDeltaMovement().lengthSqr() < 1e-4`；取物品用 public 的
   `getPickupItemStackOrigin()`。

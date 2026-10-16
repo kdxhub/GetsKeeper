@@ -178,7 +178,7 @@ public final class GKDialog {
 
     /** Opens the password prompt. */
     public static void showPasswordPrompt(PasswordPurpose purpose, String itemId, String suggestedUsername,
-            boolean mandatory) {
-        minecraft().setScreen(new PasswordScreen(purpose, itemId, suggestedUsername, mandatory));
+            boolean mandatory, int minLength) {
+        minecraft().setScreen(new PasswordScreen(purpose, itemId, suggestedUsername, mandatory, minLength));
     }
 }

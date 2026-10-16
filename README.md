@@ -133,8 +133,24 @@ takes precedence. **The same entry may not appear in two lists** — if it does,
 message telling you which entry is duplicated. That is intentional: a shared entry would make the
 outcome depend on iteration order.
 
-Other sections control the pickup scan radius and cooldown, the verification duration range, and the
-password policy. All of them are documented inline in the file.
+### Password policy
+
+```toml
+[security]
+    # When true, an operator (permission level 3) with no password yet must set one before playing.
+    require_admin_password = true
+    # Minimum number of characters accepted by the password prompt and /passwd.
+    min_length = 6
+    # PBKDF2WithHmacSHA256 iteration count.
+    pbkdf2_iterations = 120000
+```
+
+`min_length` defaults to **6**, and a password below it is refused. The prompt shows the requirement
+next to the password field and rejects a too-short entry on the spot, so the rule is never a surprise;
+the value it shows is the one the server sent, so it stays correct if you change `min_length` here.
+
+The remaining sections control the pickup scan radius and cooldown, the verification duration range,
+and whether arrows are intercepted. All of them are documented inline in the file.
 
 ## Commands
 

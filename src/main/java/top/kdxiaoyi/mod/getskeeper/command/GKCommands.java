@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
+import top.kdxiaoyi.mod.getskeeper.config.GKConfig;
 import top.kdxiaoyi.mod.getskeeper.net.GKNetwork;
 import top.kdxiaoyi.mod.getskeeper.net.PasswordPurpose;
 import top.kdxiaoyi.mod.getskeeper.security.PasswordService;
@@ -81,7 +82,7 @@ public final class GKCommands {
 
         // The password comes next; the item is authorized once it has been verified.
         GKNetwork.sendPasswordPrompt(player, PasswordPurpose.AUTHORIZE_ITEM, itemId.toString(),
-                player.getScoreboardName(), false);
+                player.getScoreboardName(), false, GKConfig.passwordMinLength());
         return 1;
     }
 

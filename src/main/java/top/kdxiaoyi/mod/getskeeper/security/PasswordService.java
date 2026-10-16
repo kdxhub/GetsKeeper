@@ -5,6 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
+import top.kdxiaoyi.mod.getskeeper.GetsKeeper;
 import top.kdxiaoyi.mod.getskeeper.config.GKConfig;
 import top.kdxiaoyi.mod.getskeeper.data.GKWorldData;
 import top.kdxiaoyi.mod.getskeeper.net.GKNetwork;
@@ -47,29 +48,42 @@ public final class PasswordService {
 
     /** Sends the mandatory first-time setup prompt. */
     public static void promptSetup(ServerPlayer player) {
-        GKNetwork.sendPasswordPrompt(player, PasswordPurpose.SET_PASSWORD, "", player.getScoreboardName(), true);
+        GKNetwork.sendPasswordPrompt(player, PasswordPurpose.SET_PASSWORD, "", player.getScoreboardName(), true,
+                GKConfig.passwordMinLength());
     }
 
     /** Sends the voluntary prompt behind {@code /passwd}. */
     public static void promptChange(ServerPlayer player) {
-        GKNetwork.sendPasswordPrompt(player, PasswordPurpose.SET_PASSWORD, "", player.getScoreboardName(), false);
+        GKNetwork.sendPasswordPrompt(player, PasswordPurpose.SET_PASSWORD, "", player.getScoreboardName(), false,
+                GKConfig.passwordMinLength());
     }
 
     /**
      * Stores a password for the player's own name.
      *
+     * <p>Every refusal is logged together with its reason. The player is not told which rule they
+     * broke - the prompt states the length rule up front instead - but an operator reading the log
+     * should not have to guess why an attempt failed.
+     *
      * @return {@code false} when the password is too short or aimed at somebody else's name
      */
     public static boolean store(ServerPlayer player, String username, String password) {
-        if (password == null || password.length() < GKConfig.passwordMinLength()) {
+        int minLength = GKConfig.passwordMinLength();
+        if (password == null || password.length() < minLength) {
+            GetsKeeper.LOGGER.info("Refused a password for {}: shorter than the {} character minimum",
+                    player.getScoreboardName(), minLength);
             return false;
         }
         if (!username.isEmpty() && !username.equalsIgnoreCase(player.getScoreboardName())) {
             // Setting another player's password is not a thing this mod does.
+            GetsKeeper.LOGGER.info("Refused a password for {}: the request named '{}' instead",
+                    player.getScoreboardName(), username);
             return false;
         }
         GKWorldData data = world(player);
         if (data == null) {
+            GetsKeeper.LOGGER.warn("Refused a password for {}: no world data is available",
+                    player.getScoreboardName());
             return false;
         }
         data.setPassword(player.getScoreboardName(), password);

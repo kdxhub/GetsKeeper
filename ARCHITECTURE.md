@@ -226,10 +226,17 @@ The client never computes anything that matters:
 * the verification verdict carries the trust level and the origin as a translation key plus
   arguments, so the player reads it in their own language even though the server decided;
 * the authorized list arrives through the synced attachment;
-* the session refusal list arrives through a payload, both when it changes and when the page opens.
+* the session refusal list arrives through a payload, both when it changes and when the page opens;
+* the password prompt carries the minimum length the server enforces, so the prompt can state the
+  rule on the field instead of letting a too-short password come back as a bare rejection that looks
+  like a wrong password.
 
 The one thing the client decides is the *shape* of the number it sends for a switch flip: it says
 "flip this switch" and the server inverts the authoritative state.
+
+Changing a payload's fields is a protocol change: `GKNetwork.VERSION` is bumped whenever one changes
+shape, which is how a client and a server running different builds of the mod refuse to talk instead
+of misreading each other. It is currently `2` — `PasswordPrompt` gained its `minLength` field.
 
 ---
 
@@ -242,7 +249,7 @@ The one thing the client decides is the *shape* of the number it sends for a swi
 * `trust_lists.blocked` — default empty.
 * `pickup.enabled`, `pickup.scan_radius`, `pickup.cooldown_ticks`, `pickup.include_arrows`.
 * `verification.enabled`, `verification.min_ticks`, `verification.max_ticks`.
-* `security.require_admin_password`, `security.min_length`, `security.pbkdf2_iterations`.
+* `security.require_admin_password`, `security.min_length` (default 6), `security.pbkdf2_iterations`.
 
 An entry may be a namespace (`minecraft`) or a full item id (`minecraft:tnt`), and a full id always
 wins. **An entry that appears in more than one list crashes the game** with a message naming the

@@ -53,7 +53,8 @@ public final class GKClientPayloadHandler {
                 PasswordPurpose.byOrdinal(payload.purpose()),
                 payload.itemId(),
                 payload.suggestedUsername(),
-                payload.mandatory()));
+                payload.mandatory(),
+                payload.minLength()));
     }
 
     public static void onPasswordResult(GKPayloads.PasswordResult payload, IPayloadContext context) {
