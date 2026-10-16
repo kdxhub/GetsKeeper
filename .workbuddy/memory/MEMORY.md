@@ -17,6 +17,9 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
   客户端负载处理器用 `RegisterClientPayloadHandlersEvent` 注册，common 侧只 `playToClient(type, codec)`。
   这是刻意的：不引入 split source set，少一个构建变量。
 - `./gradlew build` 已实测通过，产出 `build/libs/getskeeper-<version>.jar`。
+- **`./gradlew runServer` 也已实测启动成功**（Mod 加载、配置生成、命令注册均正常）。改动注册/启动路径后
+  请务必跑一次 `runServer` —— 编译通过不代表能跑（见下）。
+  下发命令要用 RCON，Gradle **不转发 stdin**。
 
 ## 网络受限环境的构建（本机必需，已固化进仓库）
 `maven.neoforged.net` 在本机被 DNS 污染（多个 DoH 都返回被注入的 Facebook 段 IP，443 全部超时），
@@ -41,3 +44,6 @@ Mod ID `getskeeper`，包 `top.kdxiaoyi.mod.getskeeper`，客户端与服务端�
   `getPickupItemStackOrigin()`。
 - 客户端发包用 `ClientPacketDistributor#sendToServer`（`PacketDistributor` 只有服务端方法）。
 - netty 4.2 的 `ByteBuf` 没有 `writeVarInt/readVarInt`，用 `writeInt/readInt`。
+- **物品注册必须用带 key 的工厂**：`Item.Properties` 自带物品 id，自己在 supplier 里
+  `new Item.Properties()` 会以 `NullPointerException: Item id not set` 在 RegisterEvent 阶段崩溃。
+  写 `ITEMS.register(name, key -> new TheItem(new Item.Properties()...setId(ResourceKey.create(Registries.ITEM, key))))`。

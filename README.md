@@ -47,6 +47,12 @@ To launch a development client or server:
 The dedicated server writes `eula.txt` on first start; accept it, and set `online-mode=false` in
 `server.properties` if you want to connect with a development account.
 
+`runServer` is also the quickest way to check that the mod actually loads: a successful start prints
+`Done (...)! For help, type "help"`, and GetsKeeper logs its trust lists at the same time:
+`Trust lists loaded: 1 fully trusted, 0 trusted, 0 blocked`. Note that a start can fail for reasons
+that have nothing to do with the mod — a busy port (`Address already in use`) or `Failed to request
+yggdrasil public key`, which is a blocked call to Mojang and is harmless in offline mode.
+
 ### Building from mainland China (mirrors)
 
 `maven.neoforged.net` can be unreachable or DNS-intercepted on some networks. On such a network the

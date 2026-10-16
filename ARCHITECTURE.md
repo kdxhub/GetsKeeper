@@ -276,6 +276,10 @@ The port from older versions is not cosmetic. Things this code depends on that c
   through `net.neoforged.neoforge.client.network.ClientPacketDistributor#sendToServer`.
 * `AbstractArrow` exposes `getPickupItemStackOrigin()` publicly but keeps `getPickupItem()` and
   `isInGround()` protected. See deviation 4 below for how that is worked around.
+* `Item.Properties` now carries the item's own id. A `DeferredRegister.Items` factory that ignores the
+  registry key and builds `new Item.Properties()` itself fails at registration time with
+  `NullPointerException: Item id not set`, thrown from `Item.Properties#effectiveDescriptionId`. The
+  key-aware overload (`register(name, Function<Identifier, ...>)`, or `registerItem(...)`) sets it.
 
 The mod uses **no mixins and no access transformers**: everything goes through the public API.
 
