@@ -41,6 +41,9 @@ import top.kdxiaoyi.mod.getskeeper.source.SourceRecorder;
 public final class PickupInterceptor {
     private static final int ARROW_SCAN_INTERVAL = 2;
 
+    /** Below this squared speed an arrow counts as stopped; see {@link #hasComeToRest}. */
+    private static final double RESTING_SPEED_SQR = 1.0E-4;
+
     private PickupInterceptor() {}
 
     public static void register() {
@@ -99,7 +102,7 @@ public final class PickupInterceptor {
             if (PickupSession.isCoolingDown(playerId, arrow.getUUID(), now)) {
                 continue;
             }
-            ItemStack stack = arrow.getPickupItem().copy();
+            ItemStack stack = arrow.getPickupItemStackOrigin().copy();
             if (stack.isEmpty()) {
                 continue;
             }
@@ -292,16 +295,33 @@ public final class PickupInterceptor {
 
         List<AbstractArrow> pickable = new ArrayList<>(found.size());
         for (AbstractArrow arrow : found) {
-            if (!arrow.isInGround() || arrow.pickup != AbstractArrow.Pickup.ALLOWED) {
+            if (arrow.pickup != AbstractArrow.Pickup.ALLOWED) {
                 continue;
             }
-            if (arrow.getPickupItem().isEmpty()) {
+            if (!hasComeToRest(arrow)) {
+                continue;
+            }
+            if (arrow.getPickupItemStackOrigin().isEmpty()) {
                 continue;
             }
             pickable.add(arrow);
         }
         pickable.sort(Comparator.comparingDouble(arrow -> arrow.distanceToSqr(player)));
         return pickable;
+    }
+
+    /**
+     * {@return whether an arrow has stopped and can be taken}
+     *
+     * <p>Vanilla gates arrow pickup on {@code inGround || isNoPhysics()}. {@code isInGround()} is
+     * protected and this mod deliberately stays on the public API - no mixin, no access transformer -
+     * so the resting state is inferred instead: an arrow is takeable once it reports itself as
+     * supported, has had physics switched off, or has simply stopped moving. A mid-flight arrow fails
+     * all three, which is the case that matters, because intercepting one would hand the player a
+     * projectile that is still in the air.
+     */
+    private static boolean hasComeToRest(AbstractArrow arrow) {
+        return arrow.isNoPhysics() || arrow.onGround() || arrow.getDeltaMovement().lengthSqr() < RESTING_SPEED_SQR;
     }
 
     // --- helpers -----------------------------------------------------------------------------

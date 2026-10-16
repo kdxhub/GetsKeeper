@@ -1,5 +1,6 @@
 # This is the mod metadata file for GetsKeeper. It is processed by the `generateModMetadata`
-# Gradle task, which substitutes the ${...} placeholders with the values from gradle.properties.
+# Gradle task, which substitutes the placeholder fields below with the values from gradle.properties.
+# (Keep the curly-brace placeholders out of these comments: the template is Groovy-evaluated.)
 # The finished file lands in build/generated/sources/modMetadata/META-INF/neoforge.mods.toml.
 modLoader="javafml" #mandatory
 loaderVersion="${loader_version_range}" #mandatory

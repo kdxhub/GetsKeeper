@@ -272,6 +272,10 @@ The port from older versions is not cosmetic. Things this code depends on that c
 * Client HUD content is registered as a `GuiLayer` through `RegisterGuiLayersEvent`.
 * Client payload handlers are attached through `RegisterClientPayloadHandlersEvent`, which is what
   keeps server to client payloads registered without a handler in common code.
+* `PacketDistributor` only carries the server's send methods; a client sending to the server goes
+  through `net.neoforged.neoforge.client.network.ClientPacketDistributor#sendToServer`.
+* `AbstractArrow` exposes `getPickupItemStackOrigin()` publicly but keeps `getPickupItem()` and
+  `isInGround()` protected. See deviation 4 below for how that is worked around.
 
 The mod uses **no mixins and no access transformers**: everything goes through the public API.
 
@@ -296,8 +300,13 @@ These are deliberate, and each one is a place where the original design could no
    containers in vanilla, so they are not intercepted there; the resulting hand or equipment use
    still is. Widening the rule would have meant intercepting container menus too, which the design
    explicitly excludes.
-4. **Arrow pickup.** As above, the arrow's `pickup` field is suspended rather than the pickup being
-   cancelled, because vanilla performs it inside collision handling.
+4. **Arrow pickup.** Vanilla performs arrow pickup from inside collision handling, so the arrow's
+   public `pickup` field is flipped to `DISALLOWED` to suspend it and restored if the player declines,
+   instead of cancelling an event. Two of the accessors vanilla uses there are not available:
+   `isInGround()` and `getPickupItem()` are both `protected`, and this mod takes no access
+   transformers, so the resting test is reconstructed from `isNoPhysics()`, `onGround()` and a
+   near-zero velocity check, and the item comes from the public `getPickupItemStackOrigin()`. An
+   arrow in flight fails all three tests, which is the case that must not be intercepted.
 5. **"Move to the void".** The stack that is being verified is cleared, together with any identical
    stack in the inventory. Both are logged.
 6. **Operators in single-player.** "Single-player counts as administrator" is implemented as

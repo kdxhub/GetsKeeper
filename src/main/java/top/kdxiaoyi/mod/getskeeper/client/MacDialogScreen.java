@@ -133,12 +133,12 @@ public class MacDialogScreen extends Screen {
         if (warning || !icon.isEmpty()) {
             height += ICON_SIZE + 10;
         }
-        height += paragraphHeight(font, title, innerWidth) + 8;
+        height += MacTheme.paragraphHeight(font, title, innerWidth) + 8;
         if (body != null) {
-            height += paragraphHeight(font, body, innerWidth) + 8;
+            height += MacTheme.paragraphHeight(font, body, innerWidth) + 8;
         }
         if (attribution != null) {
-            height += paragraphHeight(font, attribution, innerWidth) + 8;
+            height += MacTheme.paragraphHeight(font, attribution, innerWidth) + 8;
         }
         if (!choices.isEmpty()) {
             height += MacTheme.BUTTON_HEIGHT + 12;

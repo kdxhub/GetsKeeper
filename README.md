@@ -49,22 +49,47 @@ The dedicated server writes `eula.txt` on first start; accept it, and set `onlin
 
 ### Building from mainland China (mirrors)
 
-`maven.neoforged.net` can be unreachable or DNS-intercepted on some networks. `build.gradle` therefore
-lists two mirrors **ahead of** the official repository:
+`maven.neoforged.net` can be unreachable or DNS-intercepted on some networks. On such a network the
+build needs three things, and `build.gradle` handles all of them. **Adding a mirror is not enough on
+its own**, which is the trap worth knowing about:
 
-| Repository | What it carries |
-|---|---|
-| `https://mirror.sjtu.edu.cn/bmclapi` (BMCLAPI) | Fast from China. Mirrors the NeoForge Maven, but the copy is **partial** — it has no `neoform-runtime` and several version folders are missing files. |
-| `https://maven.creeperhost.net` | A live proxy of `maven.neoforged.net`. Whatever exists upstream resolves here, including `neoform-runtime` and the NeoForm data. |
+1. **Redirect, do not reorder.** ModDevGradle registers its own `NeoForged Releases` repository while
+   its plugin is applied — before `build.gradle`'s `repositories` block runs — so the official URL ends
+   up *ahead* of anything added there. Gradle skips a repository that answers 404, but it aborts on one
+   that times out, so resolution dies on the unreachable host before a mirror is ever consulted.
+   `build.gradle` therefore rewrites the URL itself, for every `MavenArtifactRepository`:
 
-Gradle walks them in order, so BMCLAPI serves what it has and CreeperHost fills the rest. Together they
-cover the whole toolchain, which is how this project builds where the official host is unreachable.
+   | Official URL | Redirected to | Why |
+   |---|---|---|
+   | `https://maven.neoforged.net/releases` | `https://maven.creeperhost.net` | CreeperHost is a live proxy of that exact repository. |
+   | `https://maven.neoforged.net/mojang-meta` | `gradle/local-repo` | Nothing mirrors `/mojang-meta/`; see below. |
 
-If your network reaches `maven.neoforged.net` normally, delete both blocks and keep the official
-repository only — that is the supported source. Note that a 404 from a mirror does **not** always mean
-the mirror is incomplete: `neoforge-21.11.41.pom` is a genuine 404 upstream (see the note above).
+   BMCLAPI (`https://mirror.sjtu.edu.cn/bmclapi`, mirrored by SJTU) is listed as well and is the fast
+   path from China, but its copy is **partial**: it has no `neoform-runtime`, and several version
+   folders are missing files. It cannot stand on its own.
 
-When resolution fails, it looks like this — and note that the compile task never runs, so no Java
+2. **`net.neoforged:minecraft-dependencies` is rebuilt locally.** ModDevGradle's `Mojang Meta`
+   repository exists for exactly one artifact: `net.neoforged:minecraft-dependencies`, which carries
+   the list of Minecraft's own libraries and is pulled in through `neoforge -> neoform`. It is
+   published only to `maven.neoforged.net/mojang-meta`; BMCLAPI has no such path, and CreeperHost
+   proxies `/releases/` and `/snapshots/` but not `/mojang-meta/`. Without it compilation fails with a
+   few dozen `package com.mojang.serialization does not exist` / `package io.netty.buffer does not
+   exist` errors. `tools/generate-minecraft-dependencies.py` rebuilds an equivalent module from the
+   Minecraft version manifest into `gradle/local-repo`, and it is committed, so a checkout builds with
+   no extra steps. Regenerate it when bumping the Minecraft version.
+
+3. **NFRT downloads are pre-seeded when necessary.** NeoForm's runtime fetches a handful of
+   libraries directly from `maven.neoforged.net/releases`, and it follows the version manifest for the
+   rest (`libraries.minecraft.net`, which is reachable). Any artifact it cannot fetch can be dropped
+   into `~/.gradle/caches/neoformruntime/artifacts/<group>/<artifact>/<version>/` by hand — NFRT uses
+   the file if it is already there.
+
+If your network reaches `maven.neoforged.net` normally, delete the redirect block in `build.gradle`
+and the two mirror blocks, and keep the official repository only — that is the supported source.
+A 404 from a mirror does **not** always mean the mirror is incomplete: `neoforge-21.11.41.pom` is a
+genuine 404 upstream (see the note above).
+
+A DNS-interception failure looks like this, and note that the compile task never runs, so no Java
 compiler is invoked and no source error is ever reported:
 
 ```
@@ -73,8 +98,9 @@ compiler is invoked and no source error is ever reported:
       > Connect to maven.neoforged.net:443 failed: Connect timed out
 ```
 
-If the hostname resolves to an address that is not NeoForge's, your DNS is being intercepted; a
-different resolver or a VPN is usually enough.
+If the hostname resolves to an address that is not NeoForge's, your DNS is being intercepted. A
+different resolver is usually **not** enough here: public DoH providers return injected addresses for
+this hostname too, so the redirects above are the practical fix.
 
 ## Installing
 

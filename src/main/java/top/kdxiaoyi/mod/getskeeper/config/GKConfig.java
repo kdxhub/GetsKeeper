@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import net.minecraft.util.RandomSource;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -268,7 +269,7 @@ public final class GKConfig {
     }
 
     /** {@return a random verification duration in ticks between the configured bounds} */
-    public static int rollVerificationTicks(java.util.RandomSource random) {
+    public static int rollVerificationTicks(RandomSource random) {
         int min = Math.min(snapshot.verifyMinTicks, snapshot.verifyMaxTicks);
         int max = Math.max(snapshot.verifyMinTicks, snapshot.verifyMaxTicks);
         return min >= max ? min : min + random.nextInt(max - min + 1);

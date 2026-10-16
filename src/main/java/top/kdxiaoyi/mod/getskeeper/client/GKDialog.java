@@ -9,7 +9,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import top.kdxiaoyi.mod.getskeeper.net.GKPayloads;
 import top.kdxiaoyi.mod.getskeeper.net.PasswordPurpose;
@@ -116,7 +116,7 @@ public final class GKDialog {
 
     private static void decide(VerificationDecision decision) {
         VerificationOverlay.finish();
-        PacketDistributor.sendToServer(new GKPayloads.UseDecision(decision.ordinal()));
+        ClientPacketDistributor.sendToServer(new GKPayloads.UseDecision(decision.ordinal()));
     }
 
     /** Opens the screen for a verification verdict. */

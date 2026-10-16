@@ -42,7 +42,7 @@ public final class GKPayloads {
      */
     public record OpenPickupScreen(List<ItemStack> stacks, List<String> itemIds, boolean inventoryFull, String ownerName)
             implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<OpenPickupScreen> TYPE = type("open_pickup_screen");
+        public static final CustomPacketPayload.Type<OpenPickupScreen> TYPE = GKPayloads.type("open_pickup_screen");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenPickupScreen> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> {
@@ -65,7 +65,7 @@ public final class GKPayloads {
 
     /** Tells the client to start drawing the verification overlay. */
     public record VerificationStart(ItemStack stack, int durationTicks) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<VerificationStart> TYPE = type("verification_start");
+        public static final CustomPacketPayload.Type<VerificationStart> TYPE = GKPayloads.type("verification_start");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, VerificationStart> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> {
@@ -93,7 +93,7 @@ public final class GKPayloads {
             String sourceDimension,
             long acquiredAt,
             String acquiredBy) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<VerificationResult> TYPE = type("verification_result");
+        public static final CustomPacketPayload.Type<VerificationResult> TYPE = GKPayloads.type("verification_result");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, VerificationResult> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> {
@@ -132,7 +132,7 @@ public final class GKPayloads {
      */
     public record PasswordPrompt(int purpose, String itemId, String suggestedUsername, boolean mandatory)
             implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<PasswordPrompt> TYPE = type("password_prompt");
+        public static final CustomPacketPayload.Type<PasswordPrompt> TYPE = GKPayloads.type("password_prompt");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PasswordPrompt> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> {
@@ -155,7 +155,7 @@ public final class GKPayloads {
 
     /** Reports the outcome of a password attempt back to the client that submitted it. */
     public record PasswordResult(int purpose, String itemId, boolean success, boolean kick) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<PasswordResult> TYPE = type("password_result");
+        public static final CustomPacketPayload.Type<PasswordResult> TYPE = GKPayloads.type("password_result");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PasswordResult> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> {
@@ -178,7 +178,7 @@ public final class GKPayloads {
 
     /** The items that were refused during this play session, for the bottom of the privacy screen. */
     public record SessionBlocked(List<String> itemIds) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<SessionBlocked> TYPE = type("session_blocked");
+        public static final CustomPacketPayload.Type<SessionBlocked> TYPE = GKPayloads.type("session_blocked");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, SessionBlocked> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> writeStrings(buf, payload.itemIds()),
@@ -194,7 +194,7 @@ public final class GKPayloads {
 
     /** The player's answer on the pickup screen. */
     public record PickupDecision(boolean accept) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<PickupDecision> TYPE = type("pickup_decision");
+        public static final CustomPacketPayload.Type<PickupDecision> TYPE = GKPayloads.type("pickup_decision");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PickupDecision> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> buf.writeBoolean(payload.accept()),
@@ -208,7 +208,7 @@ public final class GKPayloads {
 
     /** The player's answer on a verification dialog. See {@code VerificationDecision}. */
     public record UseDecision(int decision) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<UseDecision> TYPE = type("use_decision");
+        public static final CustomPacketPayload.Type<UseDecision> TYPE = GKPayloads.type("use_decision");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, UseDecision> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> buf.writeVarInt(payload.decision()),
@@ -222,7 +222,7 @@ public final class GKPayloads {
 
     /** Submits a password. The plain text only ever exists in transit and in memory. */
     public record PasswordSubmit(int purpose, String itemId, String username, String password) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<PasswordSubmit> TYPE = type("password_submit");
+        public static final CustomPacketPayload.Type<PasswordSubmit> TYPE = GKPayloads.type("password_submit");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PasswordSubmit> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> {
@@ -245,7 +245,7 @@ public final class GKPayloads {
 
     /** Sent when the privacy screen opens so the server can push the session list back. */
     public record RequestSessionData() implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<RequestSessionData> TYPE = type("request_session_data");
+        public static final CustomPacketPayload.Type<RequestSessionData> TYPE = GKPayloads.type("request_session_data");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, RequestSessionData> STREAM_CODEC =
                 StreamCodec.unit(new RequestSessionData());
@@ -263,7 +263,7 @@ public final class GKPayloads {
      * until I have set a password" and the server disconnects them.
      */
     public record PasswordCancel(int purpose) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<PasswordCancel> TYPE = type("password_cancel");
+        public static final CustomPacketPayload.Type<PasswordCancel> TYPE = GKPayloads.type("password_cancel");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, PasswordCancel> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> buf.writeVarInt(payload.purpose()),
@@ -277,7 +277,7 @@ public final class GKPayloads {
 
     /** "Use anyway", pressed on an item that was refused this session. */
     public record RequestBlockedUse(String itemId) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<RequestBlockedUse> TYPE = type("request_blocked_use");
+        public static final CustomPacketPayload.Type<RequestBlockedUse> TYPE = GKPayloads.type("request_blocked_use");
 
         public static final StreamCodec<RegistryFriendlyByteBuf, RequestBlockedUse> STREAM_CODEC = StreamCodec.of(
                 (buf, payload) -> ByteBufCodecs.STRING_UTF8.encode(buf, payload.itemId()),

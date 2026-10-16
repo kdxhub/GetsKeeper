@@ -49,14 +49,14 @@ public final class AuthorizationRecord {
     }
 
     private static void writeStrings(ByteBuf buf, Set<String> values) {
-        buf.writeVarInt(values.size());
+        buf.writeInt(values.size());
         for (String value : values) {
             ByteBufCodecs.STRING_UTF8.encode(buf, value);
         }
     }
 
     private static Set<String> readStrings(ByteBuf buf) {
-        int size = buf.readVarInt();
+        int size = buf.readInt();
         Set<String> values = new LinkedHashSet<>(Math.max(4, size));
         for (int i = 0; i < size; i++) {
             values.add(ByteBufCodecs.STRING_UTF8.decode(buf));

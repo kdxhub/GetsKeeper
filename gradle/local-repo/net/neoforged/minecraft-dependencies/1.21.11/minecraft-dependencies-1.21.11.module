@@ -1,0 +1,776 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "net.neoforged",
+    "module": "minecraft-dependencies",
+    "version": "1.21.11",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.2.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "at.yawk.lz4",
+          "module": "lz4-java",
+          "version": {
+            "requires": "1.8.1"
+          }
+        },
+        {
+          "group": "ca.weblite",
+          "module": "java-objc-bridge",
+          "version": {
+            "requires": "1.1"
+          }
+        },
+        {
+          "group": "com.azure",
+          "module": "azure-json",
+          "version": {
+            "requires": "1.4.0"
+          }
+        },
+        {
+          "group": "com.github.oshi",
+          "module": "oshi-core",
+          "version": {
+            "requires": "6.9.0"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.13.2"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "failureaccess",
+          "version": {
+            "requires": "1.0.3"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "33.5.0-jre"
+          }
+        },
+        {
+          "group": "com.ibm.icu",
+          "module": "icu4j",
+          "version": {
+            "requires": "77.1"
+          }
+        },
+        {
+          "group": "com.microsoft.azure",
+          "module": "msal4j",
+          "version": {
+            "requires": "1.23.1"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "authlib",
+          "version": {
+            "requires": "7.0.61"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "blocklist",
+          "version": {
+            "requires": "1.0.10"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "brigadier",
+          "version": {
+            "requires": "1.3.10"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "datafixerupper",
+          "version": {
+            "requires": "9.0.19"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "jtracy",
+          "version": {
+            "requires": "1.0.37"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "logging",
+          "version": {
+            "requires": "1.6.11"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "patchy",
+          "version": {
+            "requires": "2.2.10"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "text2speech",
+          "version": {
+            "requires": "1.18.11"
+          }
+        },
+        {
+          "group": "commons-codec",
+          "module": "commons-codec",
+          "version": {
+            "requires": "1.19.0"
+          }
+        },
+        {
+          "group": "commons-io",
+          "module": "commons-io",
+          "version": {
+            "requires": "2.20.0"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-buffer",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-codec-base",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-codec-compression",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-codec-http",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-common",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-handler",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-resolver",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport-classes-epoll",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport-classes-kqueue",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport-native-unix-common",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "it.unimi.dsi",
+          "module": "fastutil",
+          "version": {
+            "requires": "8.5.18"
+          }
+        },
+        {
+          "group": "net.java.dev.jna",
+          "module": "jna",
+          "version": {
+            "requires": "5.17.0"
+          }
+        },
+        {
+          "group": "net.java.dev.jna",
+          "module": "jna-platform",
+          "version": {
+            "requires": "5.17.0"
+          }
+        },
+        {
+          "group": "net.sf.jopt-simple",
+          "module": "jopt-simple",
+          "version": {
+            "requires": "5.0.4"
+          }
+        },
+        {
+          "group": "org.apache.commons",
+          "module": "commons-compress",
+          "version": {
+            "requires": "1.28.0"
+          }
+        },
+        {
+          "group": "org.apache.commons",
+          "module": "commons-lang3",
+          "version": {
+            "requires": "3.19.0"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.25.2"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.25.2"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-slf4j2-impl",
+          "version": {
+            "requires": "2.25.2"
+          }
+        },
+        {
+          "group": "org.jcraft",
+          "module": "jorbis",
+          "version": {
+            "requires": "0.0.17"
+          }
+        },
+        {
+          "group": "org.joml",
+          "module": "joml",
+          "version": {
+            "requires": "1.10.8"
+          }
+        },
+        {
+          "group": "org.jspecify",
+          "module": "jspecify",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-freetype",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-glfw",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-jemalloc",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-openal",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-opengl",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-stb",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-tinyfd",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "2.0.17"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "minecraft-dependencies-1.21.11.jar",
+          "url": "minecraft-dependencies-1.21.11.jar",
+          "size": 160,
+          "sha512": "bbIVHSCEmlgFFJsn+QY+tGafdjBiIK91l4hDHFgIC5eFevH04CMP+Q5hq/YTwutnxRsZX/+DgoIynZVluwFUpw==",
+          "sha256": "cad4fc2293e65a16fee5ac3a0f77f0c8c1d25e9650639b63c9ac6d81203f8634",
+          "sha1": "aa16323c35b59fc56acb7eecad7aec4eaddbc202",
+          "md5": "f7c6ea2ee807fc6dd6e7041973bd4d54"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "at.yawk.lz4",
+          "module": "lz4-java",
+          "version": {
+            "requires": "1.8.1"
+          }
+        },
+        {
+          "group": "ca.weblite",
+          "module": "java-objc-bridge",
+          "version": {
+            "requires": "1.1"
+          }
+        },
+        {
+          "group": "com.azure",
+          "module": "azure-json",
+          "version": {
+            "requires": "1.4.0"
+          }
+        },
+        {
+          "group": "com.github.oshi",
+          "module": "oshi-core",
+          "version": {
+            "requires": "6.9.0"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.13.2"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "failureaccess",
+          "version": {
+            "requires": "1.0.3"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "33.5.0-jre"
+          }
+        },
+        {
+          "group": "com.ibm.icu",
+          "module": "icu4j",
+          "version": {
+            "requires": "77.1"
+          }
+        },
+        {
+          "group": "com.microsoft.azure",
+          "module": "msal4j",
+          "version": {
+            "requires": "1.23.1"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "authlib",
+          "version": {
+            "requires": "7.0.61"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "blocklist",
+          "version": {
+            "requires": "1.0.10"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "brigadier",
+          "version": {
+            "requires": "1.3.10"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "datafixerupper",
+          "version": {
+            "requires": "9.0.19"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "jtracy",
+          "version": {
+            "requires": "1.0.37"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "logging",
+          "version": {
+            "requires": "1.6.11"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "patchy",
+          "version": {
+            "requires": "2.2.10"
+          }
+        },
+        {
+          "group": "com.mojang",
+          "module": "text2speech",
+          "version": {
+            "requires": "1.18.11"
+          }
+        },
+        {
+          "group": "commons-codec",
+          "module": "commons-codec",
+          "version": {
+            "requires": "1.19.0"
+          }
+        },
+        {
+          "group": "commons-io",
+          "module": "commons-io",
+          "version": {
+            "requires": "2.20.0"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-buffer",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-codec-base",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-codec-compression",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-codec-http",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-common",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-handler",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-resolver",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport-classes-epoll",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport-classes-kqueue",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "io.netty",
+          "module": "netty-transport-native-unix-common",
+          "version": {
+            "requires": "4.2.7.Final"
+          }
+        },
+        {
+          "group": "it.unimi.dsi",
+          "module": "fastutil",
+          "version": {
+            "requires": "8.5.18"
+          }
+        },
+        {
+          "group": "net.java.dev.jna",
+          "module": "jna",
+          "version": {
+            "requires": "5.17.0"
+          }
+        },
+        {
+          "group": "net.java.dev.jna",
+          "module": "jna-platform",
+          "version": {
+            "requires": "5.17.0"
+          }
+        },
+        {
+          "group": "net.sf.jopt-simple",
+          "module": "jopt-simple",
+          "version": {
+            "requires": "5.0.4"
+          }
+        },
+        {
+          "group": "org.apache.commons",
+          "module": "commons-compress",
+          "version": {
+            "requires": "1.28.0"
+          }
+        },
+        {
+          "group": "org.apache.commons",
+          "module": "commons-lang3",
+          "version": {
+            "requires": "3.19.0"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.25.2"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.25.2"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-slf4j2-impl",
+          "version": {
+            "requires": "2.25.2"
+          }
+        },
+        {
+          "group": "org.jcraft",
+          "module": "jorbis",
+          "version": {
+            "requires": "0.0.17"
+          }
+        },
+        {
+          "group": "org.joml",
+          "module": "joml",
+          "version": {
+            "requires": "1.10.8"
+          }
+        },
+        {
+          "group": "org.jspecify",
+          "module": "jspecify",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-freetype",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-glfw",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-jemalloc",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-openal",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-opengl",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-stb",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.lwjgl",
+          "module": "lwjgl-tinyfd",
+          "version": {
+            "requires": "3.3.3"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "2.0.17"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "minecraft-dependencies-1.21.11.jar",
+          "url": "minecraft-dependencies-1.21.11.jar",
+          "size": 160,
+          "sha512": "bbIVHSCEmlgFFJsn+QY+tGafdjBiIK91l4hDHFgIC5eFevH04CMP+Q5hq/YTwutnxRsZX/+DgoIynZVluwFUpw==",
+          "sha256": "cad4fc2293e65a16fee5ac3a0f77f0c8c1d25e9650639b63c9ac6d81203f8634",
+          "sha1": "aa16323c35b59fc56acb7eecad7aec4eaddbc202",
+          "md5": "f7c6ea2ee807fc6dd6e7041973bd4d54"
+        }
+      ]
+    }
+  ]
+}

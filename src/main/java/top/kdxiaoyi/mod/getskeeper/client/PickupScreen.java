@@ -9,7 +9,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import top.kdxiaoyi.mod.getskeeper.net.GKPayloads;
 
@@ -182,7 +182,7 @@ public final class PickupScreen extends Screen {
     public void onClose() {
         if (!answered) {
             answered = true;
-            PacketDistributor.sendToServer(new GKPayloads.PickupDecision(false));
+            ClientPacketDistributor.sendToServer(new GKPayloads.PickupDecision(false));
         }
         ClientGuardState.clearPickup();
         super.onClose();
@@ -194,7 +194,7 @@ public final class PickupScreen extends Screen {
         // inventory warning taking over.
         if (!answered) {
             answered = true;
-            PacketDistributor.sendToServer(new GKPayloads.PickupDecision(false));
+            ClientPacketDistributor.sendToServer(new GKPayloads.PickupDecision(false));
         }
         ClientGuardState.clearPickup();
     }
@@ -209,7 +209,7 @@ public final class PickupScreen extends Screen {
             return;
         }
         answered = true;
-        PacketDistributor.sendToServer(new GKPayloads.PickupDecision(true));
+        ClientPacketDistributor.sendToServer(new GKPayloads.PickupDecision(true));
         ClientGuardState.clearPickup();
         onClose();
     }

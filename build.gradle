@@ -44,12 +44,20 @@ repositories {
     }
 
     // Applies to the repositories ModDevGradle already registered as well as to any added later.
-    // The name is left alone: Gradle forbids renaming a repository once it is in the container.
+    // The names are left alone: Gradle forbids renaming a repository once it is in the container.
     all { repo ->
         if (repo instanceof MavenArtifactRepository) {
             def repoUrl = repo.url.toString()
             if (repoUrl.startsWith('https://maven.neoforged.net/releases')) {
                 repo.setUrl('https://maven.creeperhost.net')
+            } else if (repoUrl.startsWith('https://maven.neoforged.net/mojang-meta')) {
+                // ModDevGradle's "Mojang Meta" repository exists for exactly one artifact:
+                // net.neoforged:minecraft-dependencies, the module listing Minecraft's own
+                // libraries. That artifact is published nowhere else -- not on BMCLAPI, and
+                // CreeperHost proxies /releases/ and /snapshots/ but not /mojang-meta/ -- so the
+                // repository is pointed at a local stand-in instead. See tools/generate-minecraft-dependencies.py
+                // for how it is built and how to regenerate it when the Minecraft version changes.
+                repo.setUrl(rootProject.file('gradle/local-repo'))
             }
         }
     }

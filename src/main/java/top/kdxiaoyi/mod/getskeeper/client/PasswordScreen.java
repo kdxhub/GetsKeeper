@@ -8,7 +8,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import top.kdxiaoyi.mod.getskeeper.net.GKPayloads;
 import top.kdxiaoyi.mod.getskeeper.net.PasswordPurpose;
@@ -133,12 +133,12 @@ public class PasswordScreen extends Screen {
             error = Component.translatable("getskeeper.password.empty");
             return;
         }
-        PacketDistributor.sendToServer(new GKPayloads.PasswordSubmit(purpose.ordinal(), itemId, username, password));
+        ClientPacketDistributor.sendToServer(new GKPayloads.PasswordSubmit(purpose.ordinal(), itemId, username, password));
         passwordField.setValue("");
     }
 
     private void cancel() {
-        PacketDistributor.sendToServer(new GKPayloads.PasswordCancel(purpose.ordinal()));
+        ClientPacketDistributor.sendToServer(new GKPayloads.PasswordCancel(purpose.ordinal()));
         onClose();
     }
 

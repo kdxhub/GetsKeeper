@@ -10,7 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import top.kdxiaoyi.mod.getskeeper.data.AuthorizationRecord;
 import top.kdxiaoyi.mod.getskeeper.data.GKAttachments;
@@ -55,7 +55,7 @@ public final class PrivacySecurityScreen extends Screen {
         this.parent = parent;
         // Ask the server for the session list straight away; the authorizations arrive by themselves
         // through the synced attachment.
-        PacketDistributor.sendToServer(new GKPayloads.RequestSessionData());
+        ClientPacketDistributor.sendToServer(new GKPayloads.RequestSessionData());
     }
 
     @Override
@@ -210,7 +210,7 @@ public final class PrivacySecurityScreen extends Screen {
     }
 
     private void requestUseAnyway(String itemId) {
-        PacketDistributor.sendToServer(new GKPayloads.RequestBlockedUse(itemId));
+        ClientPacketDistributor.sendToServer(new GKPayloads.RequestBlockedUse(itemId));
     }
 
     /** Draws a thin scrollbar when a list is longer than the window. */
@@ -257,7 +257,7 @@ public final class PrivacySecurityScreen extends Screen {
         if (id != null) {
             var holder = BuiltInRegistries.ITEM.getOptional(id);
             if (holder.isPresent()) {
-                return new ItemStack(holder.get().value()).getHoverName();
+                return new ItemStack(holder.get()).getHoverName();
             }
         }
         return Component.literal(itemId);
