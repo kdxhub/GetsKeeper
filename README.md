@@ -16,10 +16,18 @@ So when we noticed Gatekeeper had never expanded into Minecraft, we took matters
 | | |
 |---|---|
 | Minecraft | 1.21.11 |
-| NeoForge | 21.11.41 or newer in the 21.11 line |
+| NeoForge | 21.11.48 (see the note on 21.11.41 below) |
 | Java | 21 |
 | Gradle | 9.2 (the bundled wrapper) |
 | Build plugin | ModDevGradle 2.0.124 |
+
+### About the NeoForge version
+
+**21.11.41 cannot be built against.** It appears in the Maven metadata and carries a git tag, but no
+artifact was ever published for it, so asking for it returns a plain 404 — which is easy to misread as
+a network or mirror problem. `21.11.42`, `21.11.44`, `21.11.45` and `21.11.48` all resolve normally.
+This project is pinned to `21.11.48`, the newest patch in the line; change `neo_version` in
+`gradle.properties` to `21.11.42` if you want to stay as close as possible to the original target.
 
 ## Building
 
@@ -39,16 +47,25 @@ To launch a development client or server:
 The dedicated server writes `eula.txt` on first start; accept it, and set `online-mode=false` in
 `server.properties` if you want to connect with a development account.
 
-### If the NeoForge Maven is unreachable
+### Building from mainland China (mirrors)
 
-`maven.neoforged.net` is the only place the NeoForge artifact lives. When your network cannot reach it,
-Gradle stops at `:createMinecraftArtifacts` with a connection timeout, and **no mirror is a full
-substitute**: the community mirrors cache the NeoForm tooling (`net.neoforged:neoform-runtime`,
-`net.neoforged:neoform`) but not `net.neoforged:neoforge:<version>` itself, which is the artifact
-carrying the patched Minecraft and NeoForge classes that every source file compiles against. A mirror
-moves the failure, it does not remove it.
+`maven.neoforged.net` can be unreachable or DNS-intercepted on some networks. `build.gradle` therefore
+lists two mirrors **ahead of** the official repository:
 
-This is what it looks like, so you can tell it apart from a real build error:
+| Repository | What it carries |
+|---|---|
+| `https://mirror.sjtu.edu.cn/bmclapi` (BMCLAPI) | Fast from China. Mirrors the NeoForge Maven, but the copy is **partial** — it has no `neoform-runtime` and several version folders are missing files. |
+| `https://maven.creeperhost.net` | A live proxy of `maven.neoforged.net`. Whatever exists upstream resolves here, including `neoform-runtime` and the NeoForm data. |
+
+Gradle walks them in order, so BMCLAPI serves what it has and CreeperHost fills the rest. Together they
+cover the whole toolchain, which is how this project builds where the official host is unreachable.
+
+If your network reaches `maven.neoforged.net` normally, delete both blocks and keep the official
+repository only — that is the supported source. Note that a 404 from a mirror does **not** always mean
+the mirror is incomplete: `neoforge-21.11.41.pom` is a genuine 404 upstream (see the note above).
+
+When resolution fails, it looks like this — and note that the compile task never runs, so no Java
+compiler is invoked and no source error is ever reported:
 
 ```
 > Could not resolve net.neoforged:neoform-runtime:2.0.5.
@@ -56,13 +73,12 @@ This is what it looks like, so you can tell it apart from a real build error:
       > Connect to maven.neoforged.net:443 failed: Connect timed out
 ```
 
-Note that the compile task never runs in that case: no compiler is invoked and no source error is
-reported. If the hostname resolves to an address that is not NeoForge's, your DNS is being
-intercepted — a different resolver or a VPN is usually enough to get the build going.
+If the hostname resolves to an address that is not NeoForge's, your DNS is being intercepted; a
+different resolver or a VPN is usually enough.
 
 ## Installing
 
-1. Install NeoForge 21.11.41 for Minecraft 1.21.11.
+1. Install NeoForge 21.11.48 for Minecraft 1.21.11.
 2. Drop the jar into `mods/` **on both the client and the server**.
 3. Start the game. The config file is written to `config/getskeeper-common.toml` on first launch.
 

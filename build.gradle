@@ -19,6 +19,40 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
+
+    // maven.neoforged.net is DNS-intercepted on some networks (notably in mainland China), and simply
+    // adding a mirror does not fix it. ModDevGradle registers its own "NeoForged Releases" repository
+    // while its plugin is applied - before this block ever runs - so the official URL ends up *ahead*
+    // of anything added here. Gradle skips a repository that answers 404, but it aborts on one that
+    // times out, so resolution dies on the unreachable official host before reaching a mirror.
+    // Reordering therefore is not enough; the URL itself has to be redirected.
+    //
+    // CreeperHost is a live proxy of maven.neoforged.net, so redirecting to it is semantically a
+    // no-op: it serves the same artifacts, from a reachable host. BMCLAPI (mirrored by SJTU) is listed
+    // as well because it is the fast path from China, but its copy is partial - no neoform-runtime,
+    // and several version folders are missing files - so it cannot stand on its own.
+    //
+    // On a network that reaches maven.neoforged.net normally, delete everything below the mirror
+    // blocks and keep only the official repository; that remains the supported source.
+    maven {
+        name = 'BMCLAPI'
+        url = 'https://mirror.sjtu.edu.cn/bmclapi'
+    }
+    maven {
+        name = 'CreeperHostMirror'
+        url = 'https://maven.creeperhost.net'
+    }
+
+    // Applies to the repositories ModDevGradle already registered as well as to any added later.
+    // The name is left alone: Gradle forbids renaming a repository once it is in the container.
+    all { repo ->
+        if (repo instanceof MavenArtifactRepository) {
+            def repoUrl = repo.url.toString()
+            if (repoUrl.startsWith('https://maven.neoforged.net/releases')) {
+                repo.setUrl('https://maven.creeperhost.net')
+            }
+        }
+    }
 }
 
 base {
