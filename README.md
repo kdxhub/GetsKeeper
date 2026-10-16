@@ -1,14 +1,13 @@
 # GetsKeeper
-
-As far as we known, the GateKeeper on macOS guaranteed the security of our computer and system.
-Also, Minecraft is the most widely known game around the world.
-So, to solve why GateKeeper doesn't expand the market in Minecraft, we are inspired to make it come true.
+As far as we know, Gatekeeper on macOS is supposed to keep your Mac secure.
+Minecraft is the most widely known game in the world.
+So when we noticed Gatekeeper had never expanded into Minecraft, we took matters into our own hands.
 
 ## Features
 
-* 100% Reintroduced GateKeeper Experience: from item checks to anti-malitem
-* ZeroTrust Ensured: salted-SHA256 guaranteed permission controller
-* Original Text: enable u to adapt to migration quickly
+* 100% Authentic Gatekeeper Experience: from item signature checks to anti-mal-item quarantine
+* Zero Trust, Guaranteed: a salted-SHA256 permission controller that solves everything, probably
+* Original Text: helps you migrate quickly, because learning new things is hard
 
 ---
 
@@ -42,19 +41,24 @@ The dedicated server writes `eula.txt` on first start; accept it, and set `onlin
 
 ### If the NeoForge Maven is unreachable
 
-`maven.neoforged.net` is the only place the NeoForge artifacts live, and it is occasionally offline.
-When it is, Gradle cannot resolve `net.neoforged:neoforge` and the build stops before it compiles
-anything. The project's own release notes point at a mirror for exactly this case; add it to
-`settings.gradle` ahead of the official repository:
+`maven.neoforged.net` is the only place the NeoForge artifact lives. When your network cannot reach it,
+Gradle stops at `:createMinecraftArtifacts` with a connection timeout, and **no mirror is a full
+substitute**: the community mirrors cache the NeoForm tooling (`net.neoforged:neoform-runtime`,
+`net.neoforged:neoform`) but not `net.neoforged:neoforge:<version>` itself, which is the artifact
+carrying the patched Minecraft and NeoForge classes that every source file compiles against. A mirror
+moves the failure, it does not remove it.
 
-```groovy
-maven {
-    name = 'NeoForgedMirror'
-    url = 'https://maven.creeperhost.net'
-}
+This is what it looks like, so you can tell it apart from a real build error:
+
+```
+> Could not resolve net.neoforged:neoform-runtime:2.0.5.
+   > Could not GET 'https://maven.neoforged.net/releases/net/neoforged/neoform-runtime/2.0.5/neoform-runtime-2.0.5.pom'.
+      > Connect to maven.neoforged.net:443 failed: Connect timed out
 ```
 
-Remove it again once the official Maven is back, so the build goes back to the supported source.
+Note that the compile task never runs in that case: no compiler is invoked and no source error is
+reported. If the hostname resolves to an address that is not NeoForge's, your DNS is being
+intercepted — a different resolver or a VPN is usually enough to get the build going.
 
 ## Installing
 
